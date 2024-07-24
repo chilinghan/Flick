@@ -14,6 +14,7 @@ class AccessorySessionManager: NSObject {
     var rawYaw: String? = nil
     var rawRoll: String? = nil
     var rawPitch: String? = nil
+    var rawBadPosture: String? = nil
 
     var peripheralConnected = false
     var pickerDismissed = true
@@ -25,11 +26,12 @@ class AccessorySessionManager: NSObject {
     private var yawCharacteristic: CBCharacteristic?
     private var rollCharacteristic: CBCharacteristic?
     private var pitchCharacteristic: CBCharacteristic?
-
+    private var postureCharacteristic: CBCharacteristic?
 
     private static let yawCharacteristicUUID = "E848839A-6DB5-4AA8-918A-5D0F2A131E0D"
     private static let rollCharacteristicUUID = "BEB5483E-36E1-4688-B7F5-EA07361B26A8"
     private static let pitchCharacteristicUUID = "066A8CE3-6217-4D38-AB95-E2C7EB872C4E"
+    private static let postureCharacteristicUUID = "1BfCE46F-D96B-40F9-8EEB-B64F861AAD89"
     
     private static let wristPlus: ASPickerDisplayItem = {
         let descriptor = ASDiscoveryDescriptor()
@@ -166,6 +168,21 @@ class AccessorySessionManager: NSObject {
         }
     }
 
+    
+    var badPosture: Bool? {
+        let string = rawBadPosture
+        
+        guard string != nil, let string = string else {
+            return nil
+        }
+        
+        if let number = Int(string, radix: 16) {
+            return number != 0
+        } else {
+            return nil
+        }
+    }
+
 }
 
 // MARK: - CBCentralManagerDelegate
@@ -216,7 +233,7 @@ extension AccessorySessionManager: CBPeripheralDelegate {
         }
 
         for service in services {
-            peripheral.discoverCharacteristics([CBUUID(string: Self.yawCharacteristicUUID), CBUUID(string: Self.rollCharacteristicUUID), CBUUID(string: Self.pitchCharacteristicUUID)], for: service)
+            peripheral.discoverCharacteristics([CBUUID(string: Self.yawCharacteristicUUID), CBUUID(string: Self.rollCharacteristicUUID), CBUUID(string: Self.pitchCharacteristicUUID), CBUUID(string: Self.postureCharacteristicUUID)], for: service)
         }
     }
 
@@ -245,6 +262,11 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             peripheral.setNotifyValue(true, for: characteristic)
             peripheral.readValue(for: characteristic)
         }
+        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.postureCharacteristicUUID) {
+            postureCharacteristic = characteristic
+            peripheral.setNotifyValue(true, for: characteristic)
+            peripheral.readValue(for: characteristic)
+        }
     }
     
 
@@ -258,7 +280,8 @@ extension AccessorySessionManager: CBPeripheralDelegate {
                 return
             }
             
-            let rawMeasurements = String(data.map { String(format: "%02x", $0) }.joined().prefix(2))
+            var rawMeasurements = data.map { String(format: "%02x", $0) }.joined()
+            rawMeasurements = String(rawMeasurements.suffix(2)) + String(rawMeasurements.prefix(2))
             print("New yaw received: \(rawMeasurements)")
 
             DispatchQueue.main.async {
@@ -275,8 +298,9 @@ extension AccessorySessionManager: CBPeripheralDelegate {
                 print("Error not able to read roll")
                 return
             }
-            
-            let rawMeasurements = String(data.map { String(format: "%02x", $0) }.joined().prefix(2))
+            var rawMeasurements = data.map { String(format: "%02x", $0) }.joined()
+//            var x = ((rawMeasurements & 0x00FF) << 8) | ((rawMeasurements & 0xFF00) >> 8);
+            rawMeasurements = String(rawMeasurements.suffix(2)) + String(rawMeasurements.prefix(2))
             print("New roll received: \(rawMeasurements)")
 
             DispatchQueue.main.async {
@@ -294,13 +318,30 @@ extension AccessorySessionManager: CBPeripheralDelegate {
                 print("Error not able to read pitch")
                 return
             }
-            
-            let rawMeasurements = String(data.map { String(format: "%02x", $0) }.joined().prefix(2))
+            var rawMeasurements = data.map { String(format: "%02x", $0) }.joined()
+            rawMeasurements = String(rawMeasurements.suffix(2)) + String(rawMeasurements.prefix(2))
             print("New pitch received: \(rawMeasurements)")
 
             DispatchQueue.main.async {
                 withAnimation {
                     self.rawPitch = rawMeasurements
+                }
+            }
+        }
+        else if characteristic.uuid == CBUUID(string: Self.postureCharacteristicUUID) {
+            guard
+                error == nil,
+                let data = characteristic.value
+            else {
+                print("Error not able to read bad posture")
+                return
+            }
+            let rawMeasurements = String(data.map { String(format: "%02x", $0) }.joined())
+            print("Bad posture: \(rawMeasurements)")
+
+            DispatchQueue.main.async {
+                withAnimation {
+                    self.rawBadPosture = rawMeasurements
                 }
             }
         }

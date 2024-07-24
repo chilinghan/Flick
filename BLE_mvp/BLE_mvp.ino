@@ -1,3 +1,4 @@
+#include <SparkFun_ISM330DHCX.h>
 #include <Wire.h>
 #include "Adafruit_BNO055.h"
 #include <BLEDevice.h>
@@ -11,29 +12,36 @@
 #define CHARACTERISTIC_YAW  "E848839A-6DB5-4AA8-918A-5D0F2A131E0D"
 #define CHARACTERISTIC_ROLL "BEB5483E-36E1-4688-B7F5-EA07361B26A8"
 #define CHARACTERISTIC_PITCH "066A8CE3-6217-4D38-AB95-E2C7EB872C4E"
+#define CHARACTERISTIC_POSTURE "1BfCE46F-D96B-40F9-8EEB-B64F861AAD89"
 
 #define HAPTIC_PIN 17 // on pin D17
 
 /* Set the delay between fresh samples */
-#define BNO055_SAMPLERATE_DELAY_MS 100
+#define DELTAT 100
 #define BNO055_PRIMARY_ADDRESS 0x28
 #define BNO055_SECONDARY_ADDRESS 0x29
 #define APP_DATA_CYCLE 1000 // in ms
 
-const int window_size = APP_DATA_CYCLE / BNO055_SAMPLERATE_DELAY_MS;
+#define alpha 0.98
+const int window_size = APP_DATA_CYCLE / DELTAT;
+const int rangeYPR[3][2] = {{0, 0}, {30, 360-30}, {0, 0}}; // in deg
 
 // Check I2C device address and correct line below (by default address is 0x29 or 0x28)
 //                                   id, address
-Adafruit_BNO055 bno1; // on hand
+// Adafruit_BNO055 bno1; // on hand
+SparkFun_ISM330DHCX ism; 
 Adafruit_BNO055 bno2; // on forearm
 
 BLECharacteristic *pCharacteristicYaw;
 BLECharacteristic *pCharacteristicPitch;
 BLECharacteristic *pCharacteristicRoll;
+BLECharacteristic *pCharacteristicPosture;
+
 BLEServer *pServer;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
+float euler1[3];
 int moving_window[window_size][3];
 int count;
 
@@ -53,7 +61,7 @@ void setup() {
 
   Serial.begin(115200);
 
-  while (!Serial) delay(500);  // wait for serial port to open!
+  delay(1500);  // wait for serial port to open!
   
   Serial.println("Starting BLE work!");
 
@@ -64,9 +72,7 @@ void setup() {
   pCharacteristicYaw = pService->createCharacteristic(
                                          CHARACTERISTIC_YAW,
                                          BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY |
-                                         BLECharacteristic::PROPERTY_WRITE
-
+                                         BLECharacteristic::PROPERTY_NOTIFY
                                        );
   pCharacteristicPitch = pService->createCharacteristic(
                                          CHARACTERISTIC_PITCH,
@@ -78,44 +84,61 @@ void setup() {
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY
                                        );
+  pCharacteristicPosture = pService->createCharacteristic(
+                                         CHARACTERISTIC_POSTURE,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_NOTIFY
+                                       );
 
   Serial.println("Orientation Sensor Raw Data Test");
   Serial.println("");
 
-  /* Initialize the IMUs */
-  bno1 = Adafruit_BNO055(0, BNO055_PRIMARY_ADDRESS, &Wire);
+	// Reset the device to default settings. This if helpful is you're doing multiple
+	// uploads testing different settings. 
+
   bno2 = Adafruit_BNO055(1, BNO055_SECONDARY_ADDRESS, &Wire);
 
-  if(!bno1.begin())
+  if(!ism.begin())
   {
-    /* There was a problem detecting the BNO055 ... check your connections */
-    Serial.print("Ooops, no BNO0551 detected ... Check your wiring or I2C ADDR!");
-    // while(1);
+    Serial.print("Ooops, no ism detected ... Check your wiring or I2C ADDR!");
+    while(1);
   }
+
+  ism.deviceReset();
+	Serial.println("Reset.");
+	Serial.println("Applying settings.");
+	delay(100);
+	
+	ism.setDeviceConfig();
+	ism.setBlockDataUpdate();
+	
+	// Set the output data rate and precision of the accelerometer
+	ism.setAccelDataRate(ISM_XL_ODR_104Hz);
+	ism.setAccelFullScale(ISM_4g); 
+
+	// Set the output data rate and precision of the gyroscope
+	ism.setGyroDataRate(ISM_GY_ODR_26Hz);
+	ism.setGyroFullScale(ISM_125dps); 
+
+	// Turn on the accelerometer's filter and apply settings. 
+	ism.setAccelFilterLP2();
+	ism.setAccelSlopeFilter(ISM_LP_ODR_DIV_100);
+
+	// Turn on the gyroscope's filter and apply settings. 
+	ism.setGyroFilterLP1();
+	ism.setGyroLP1Bandwidth(ISM_MEDIUM);
 
   if (!bno2.begin())
   {
-      /* There was a problem detecting the BNO055 ... check your connections */
     Serial.print("Ooops, no BNO0552 detected ... Check your wiring or I2C ADDR!");
-    // while(1);
+    while(1);
   }
 
   delay(1000);
 
-  bno1.setExtCrystalUse(true);
+  // bno1.setExtCrystalUse(true);
   bno2.setExtCrystalUse(true);
 
-  /* Initialize haptics */
-  // if( !hapDrive.begin())
-  //   Serial.println("Could not communicate with Haptic Driver.");
-  // else
-  //   Serial.println("Qwiic Haptic Driver DA7280 found!");
-
-  // if( !hapDrive.defaultMotor() ) 
-  //   Serial.println("Could not set default settings.");
-
-  // hapDrive.enableFreqTrack(false);
-  // hapDrive.setOperationMode(DRO_MODE);
   pinMode(HAPTIC_PIN, OUTPUT);
 
   pService->start();
@@ -143,13 +166,38 @@ void loop(void)
   // - VECTOR_EULER         - degrees
   // - VECTOR_LINEARACCEL   - m/s^2
   // - VECTOR_GRAVITY       - m/s^2
-  imu::Vector<3> euler1 = bno1.getVector(Adafruit_BNO055::VECTOR_EULER);
-  imu::Vector<3> euler2 = bno2.getVector(Adafruit_BNO055::VECTOR_EULER);
+  sfe_ism_data_t accelData; 
+  sfe_ism_data_t gyroData;
+  if (ism.checkStatus())
+  {
+    ism.getAccel(&accelData);
+    ism.getGyro(&gyroData);
+  }
+
+  float accelX1 = accelData.xData / 1000.0;
+  float accelY1 = accelData.yData / 1000.0;
+  float accelZ1 = accelData.zData / 1000.0;
+  float gyroX1 = gyroData.xData / 1000.0;
+  float gyroY1 = gyroData.yData / 1000.0;
+  float gyroZ1 = gyroData.zData / 1000.0;
+
+  gyroX1 = radians(gyroX1);
+  gyroY1 = radians(gyroY1);
+  gyroZ1 = radians(gyroZ1);
+
+  // roll
+  euler1[0] = alpha * (euler1[0] + gyroX1 * DELTAT / 1000.0) + (1 - alpha) * atan2(accelY1, accelZ1);
+  // pitch
+  euler1[1] = alpha * (euler1[1] + gyroY1 * DELTAT / 1000.0) + (1 - alpha) * atan2(-accelX1, sqrt(accelY1 * accelY1 + accelZ1 * accelZ1));
+  // yaw
+  euler1[2] += gyroZ1 * DELTAT / 1000.0;
 
   // Convert Euler angles to radians
-  float roll1 = radians(euler1.z());
-  float pitch1 = radians(euler1.y());
-  float yaw1 = radians(euler1.x());
+  float roll1 = euler1[0];
+  float pitch1 = -euler1[1];
+  float yaw1 = -euler1[2];
+
+  imu::Vector<3> euler2 = bno2.getVector(Adafruit_BNO055::VECTOR_EULER);
 
   float roll2 = radians(euler2.z());
   float pitch2 = radians(euler2.y());
@@ -186,8 +234,8 @@ void loop(void)
   int roll = (int) degrees(roll_r);
   int pitch = (int) -degrees(pitch_r);
   int yaw = (int) degrees(yaw_r);
-  yaw = (yaw < 0) ? yaw += 180 : yaw -= 180;
-  yaw = -yaw;
+  // yaw = (yaw < 0) ? yaw += 180 : yaw -= 180;
+  // yaw = -yaw;
 
   if (yaw < 0) {
     yaw += 360;
@@ -210,7 +258,9 @@ void loop(void)
   moving_window[count][0] = yaw;
   moving_window[count][1] = pitch;
   moving_window[count][2] = roll;
-  uint16_t avgRoll, avgPitch, avgYaw = 0;
+  uint16_t avgYaw = 0;
+  uint16_t avgPitch = 0;
+  uint16_t avgRoll = 0;
   
   for (int i = 0; i < window_size; i++)
   {
@@ -223,17 +273,32 @@ void loop(void)
   avgPitch /= window_size;
   avgRoll /= window_size;
 
-  digitalWrite(HAPTIC_PIN, 1);
-  // hapDrive.setVibrate(127);
+  Serial.print("Average Yaw:");
+  Serial.print(avgYaw);
+  Serial.print(" Average Pitch:");
+  Serial.print(avgPitch);
+  Serial.print(" Average Roll:");
+  Serial.println(avgRoll);
+
+  uint8_t badPosture = 0;
+
+  digitalWrite(HAPTIC_PIN, 0);
+
+  if (pitch > rangeYPR[1][0] && pitch < rangeYPR[1][1])
+  {
+    digitalWrite(HAPTIC_PIN, 1);
+    badPosture = 1;
+  }
   
   if (deviceConnected) {
-
-    pCharacteristicYaw->setValue(avgYaw);
+    pCharacteristicYaw->setValue((uint8_t *)&avgYaw, 2);
     pCharacteristicYaw->notify();
-    pCharacteristicPitch->setValue(avgPitch);
+    pCharacteristicPitch->setValue((uint8_t *)&avgPitch, 2);
     pCharacteristicPitch->notify();
-    pCharacteristicRoll->setValue(avgRoll);
+    pCharacteristicRoll->setValue((uint8_t *)&avgRoll, 2);
     pCharacteristicRoll->notify();
+    pCharacteristicPosture->setValue((uint8_t *)&badPosture, 1);
+    pCharacteristicPosture->notify();
   }
   if (!deviceConnected && oldDeviceConnected) {
         delay(500); // give the bluetooth stack the chance to get things ready
@@ -248,7 +313,7 @@ void loop(void)
 
   count++;
   count %= window_size;
-  delay(BNO055_SAMPLERATE_DELAY_MS);
+  delay(DELTAT);
 }
 
 void eulerToMatrix(float roll, float pitch, float yaw, float matrix[3][3]) {

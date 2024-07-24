@@ -50,6 +50,11 @@ struct PairedView: View {
                     } label: {
                         Text("Yaw")
                     }
+                    LabeledContent {
+                        Text(accessorySessionManager.badPosture ?? false ? "Yes" : "No")
+                    } label: {
+                        Text("Bad posture")
+                    }
                     
 //                    LabeledContent {
 //                        Text(accessorySessionManager.orientation?.name.capitalized ?? "nil")
