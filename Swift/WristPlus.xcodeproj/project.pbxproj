@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08DE262F2C52D59200420F4A /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE26282C52D59100420F4A /* ChartView.swift */; };
+		08DE26302C52D59200420F4A /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE26292C52D59100420F4A /* StatsView.swift */; };
+		08DE26312C52D59200420F4A /* GRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE262A2C52D59100420F4A /* GRingView.swift */; };
+		08DE26322C52D59200420F4A /* ContentView2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE262C2C52D59200420F4A /* ContentView2.swift */; };
+		08DE26332C52D59200420F4A /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE262D2C52D59200420F4A /* HomeView.swift */; };
+		08DE26342C52D59200420F4A /* ChartContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE262E2C52D59200420F4A /* ChartContent.swift */; };
 		9EF4762A2C4DD8CB001D2A32 /* WristPlusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF476292C4DD8CB001D2A32 /* WristPlusApp.swift */; };
 		9EF4762C2C4DD8CB001D2A32 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF4762B2C4DD8CB001D2A32 /* ContentView.swift */; };
 		9EF4762E2C4DD8CD001D2A32 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */; };
@@ -17,6 +23,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		08DE26282C52D59100420F4A /* ChartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
+		08DE26292C52D59100420F4A /* StatsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		08DE262A2C52D59100420F4A /* GRingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRingView.swift; sourceTree = "<group>"; };
+		08DE262C2C52D59200420F4A /* ContentView2.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView2.swift; sourceTree = "<group>"; };
+		08DE262D2C52D59200420F4A /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		08DE262E2C52D59200420F4A /* ChartContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChartContent.swift; sourceTree = "<group>"; };
 		9E7C132C2C4F2581008CC240 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9EF476262C4DD8CB001D2A32 /* WristPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WristPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EF476292C4DD8CB001D2A32 /* WristPlusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WristPlusApp.swift; sourceTree = "<group>"; };
@@ -39,6 +51,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		08DE262B2C52D59200420F4A /* Front-end */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Front-end";
+			sourceTree = "<group>";
+		};
 		9EF4761D2C4DD8CB001D2A32 = {
 			isa = PBXGroup;
 			children = (
@@ -64,6 +83,13 @@
 				9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */,
 				9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */,
 				9EF740982C4F20BD00BD4A2E /* PairedView.swift */,
+				08DE262E2C52D59200420F4A /* ChartContent.swift */,
+				08DE26282C52D59100420F4A /* ChartView.swift */,
+				08DE262C2C52D59200420F4A /* ContentView2.swift */,
+				08DE262B2C52D59200420F4A /* Front-end */,
+				08DE262A2C52D59100420F4A /* GRingView.swift */,
+				08DE262D2C52D59200420F4A /* HomeView.swift */,
+				08DE26292C52D59100420F4A /* StatsView.swift */,
 				9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */,
 				9EF4762F2C4DD8CD001D2A32 /* Preview Content */,
 			);
@@ -151,8 +177,14 @@
 				9EF4762C2C4DD8CB001D2A32 /* ContentView.swift in Sources */,
 				9EF4762A2C4DD8CB001D2A32 /* WristPlusApp.swift in Sources */,
 				9EF7409A2C4F20BD00BD4A2E /* PairedView.swift in Sources */,
+				08DE26332C52D59200420F4A /* HomeView.swift in Sources */,
 				9EF7409C2C4F20BD00BD4A2E /* AccessorySessionManager.swift in Sources */,
+				08DE26312C52D59200420F4A /* GRingView.swift in Sources */,
 				9EF7409D2C4F20BD00BD4A2E /* AccessoryModel.swift in Sources */,
+				08DE26322C52D59200420F4A /* ContentView2.swift in Sources */,
+				08DE26302C52D59200420F4A /* StatsView.swift in Sources */,
+				08DE262F2C52D59200420F4A /* ChartView.swift in Sources */,
+				08DE26342C52D59200420F4A /* ChartContent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
