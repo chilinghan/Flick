@@ -9,42 +9,43 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @State private var navigateToBluetoothView = false
+    @State var accessorySessionManager = AccessorySessionManager()
+    @AppStorage("accessoryPaired") private var accessoryPaired = false
 
     var body: some View {
-        VStack {
+        if accessoryPaired {
+            PairedView(accessorySessionManager: accessorySessionManager)
+        } else {
             VStack {
-                Text("WristPlus")
-                    .font(.system(size: 50, weight: .bold))                    .fontWeight(.bold)
-                    .padding(.top, 20)
-            }
-            Image("logo")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-            VStack {
-                Button(action: {withAnimation {
-                    navigateToBluetoothView = true
+                VStack {
+                    Text("WristPlus")
+                        .font(.system(size: 50, weight: .bold))                    .fontWeight(.bold)
+                        .padding(.top, 20)
                 }
-                }) {
-                    Text("Continue")
-                        .padding()
-                        .font(.headline)
-                        .fontWeight(.bold)
+                Image("logo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                
+                Spacer(minLength: 20)
+
+                
+                Button {
+                    accessorySessionManager.presentPicker()
+                } label: {
+                    Text("Pair")
                         .frame(maxWidth: .infinity)
-                        .background(Color.accentColor)
-                        .foregroundColor(.black)
-                        .cornerRadius(10)
-                        .padding(.bottom, 20)
                 }
-                .padding()
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding(.horizontal, 28)
+                .padding(.top, 20) // Add top padding to create some space between the image and the button
+                                
+                Spacer()
             }
-        }
-        .fullScreenCover(isPresented: $navigateToBluetoothView) {
-            DeviceView()
-                .transition(.opacity)
         }
     }
 }
+
 
 #Preview {
     ContentView()

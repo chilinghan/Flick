@@ -14,7 +14,6 @@
 		9EF7409A2C4F20BD00BD4A2E /* PairedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF740982C4F20BD00BD4A2E /* PairedView.swift */; };
 		9EF7409C2C4F20BD00BD4A2E /* AccessorySessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */; };
 		9EF7409D2C4F20BD00BD4A2E /* AccessoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */; };
-		C5ADA00D2C50154000A88721 /* DeviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5ADA00C2C50154000A88721 /* DeviceView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +26,6 @@
 		9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryModel.swift; sourceTree = "<group>"; };
 		9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessorySessionManager.swift; sourceTree = "<group>"; };
 		9EF740982C4F20BD00BD4A2E /* PairedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedView.swift; sourceTree = "<group>"; };
-		C5ADA00C2C50154000A88721 /* DeviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,7 +63,6 @@
 				9EF4762B2C4DD8CB001D2A32 /* ContentView.swift */,
 				9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */,
 				9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */,
-				C5ADA00C2C50154000A88721 /* DeviceView.swift */,
 				9EF740982C4F20BD00BD4A2E /* PairedView.swift */,
 				9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */,
 				9EF4762F2C4DD8CD001D2A32 /* Preview Content */,
@@ -153,7 +150,6 @@
 			files = (
 				9EF4762C2C4DD8CB001D2A32 /* ContentView.swift in Sources */,
 				9EF4762A2C4DD8CB001D2A32 /* WristPlusApp.swift in Sources */,
-				C5ADA00D2C50154000A88721 /* DeviceView.swift in Sources */,
 				9EF7409A2C4F20BD00BD4A2E /* PairedView.swift in Sources */,
 				9EF7409C2C4F20BD00BD4A2E /* AccessorySessionManager.swift in Sources */,
 				9EF7409D2C4F20BD00BD4A2E /* AccessoryModel.swift in Sources */,
