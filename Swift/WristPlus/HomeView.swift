@@ -24,7 +24,7 @@ struct HomeView: View {
                              .resizable()
                              .foregroundColor(Color.white)
                              .frame(width: 40, height: 40)
-                             .padding(.leading, 300.0)
+                             .padding(.leading, 305.0)
                              .padding(.top, 50)
                      }
 
@@ -60,13 +60,14 @@ struct HomeView: View {
             
             VStack{ // text describing fitness-y rings
                 Text("0 minutes") //ADD VARIABLES TO NUM AND MINS (to hours)
-                    .font(.system(size:35))
+                    .font(.system(size:30))
                     .foregroundColor(.green)
+                    .padding(.top,45)
                     .padding()
                 Text("0 minutes")
-                    .font(.system(size:35))
+                    .font(.system(size:30))
                     .foregroundColor(.red)
-            }.padding(.top, 120)
+            }.padding(.top, 100)
             .padding(.trailing, 70)
             .padding(.leading, 70)
             
@@ -99,9 +100,9 @@ struct HomeView: View {
                             .foregroundColor(Color("LightOr"))
                     })
                 }
-            } .padding(.top, 400)
-               .padding(.leading, 45)
-               .padding(.trailing, 50)
+            } .padding(.top, 390)
+               .padding(.leading, 67)
+               .padding(.trailing, 56)
             
             VStack{ //text describing action icons
                 HStack{

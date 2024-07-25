@@ -4,7 +4,6 @@
 //
 //  Created by Ishani Chowdhury on 7/22/24.
 //
-//
 
 import SwiftUI
 import Charts
@@ -38,7 +37,7 @@ struct StatsView: View {
             
             VStack{ // header
                 HStack{
-                    Text("My Angle")
+                    Text("Wrist Angle")
                         .font(.title)
                         .foregroundColor(Color("LightOr"))
                         Spacer()
@@ -61,6 +60,7 @@ struct StatsView: View {
                     Text("Typing Duration (Hours)")
                         .font(.title)
                         .foregroundColor(Color("LightOr"))
+                        .padding(.leading,25)
                         
                 }
             }.padding(.top, 200)
@@ -93,7 +93,8 @@ struct StatsView: View {
                         Text("typing")
                         .font(.body)
                         Spacer()
-                        Text("block length")
+                        Text("block")
+                            .padding(.leading,-65)
                         .font(.body)
                     } .padding(.top, 37)
                         .padding(.leading, 13)

@@ -21,7 +21,8 @@ struct GRingView: View {
             Image("GP")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 140, height: 140)
+                .padding(.top,7)
+                .frame(width: 138, height: 138)
               //  .padding(10)
                 .overlay {
                     Circle()
