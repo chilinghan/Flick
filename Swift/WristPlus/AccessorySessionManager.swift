@@ -26,12 +26,15 @@ class AccessorySessionManager: NSObject {
     private var yawCharacteristic: CBCharacteristic?
     private var rollCharacteristic: CBCharacteristic?
     private var pitchCharacteristic: CBCharacteristic?
-    private var postureCharacteristic: CBCharacteristic?
+    private var hapticCharacteristic: CBCharacteristic?
+    private var typingCharacteristic: CBCharacteristic?
 
     private static let yawCharacteristicUUID = "E848839A-6DB5-4AA8-918A-5D0F2A131E0D"
     private static let rollCharacteristicUUID = "BEB5483E-36E1-4688-B7F5-EA07361B26A8"
     private static let pitchCharacteristicUUID = "066A8CE3-6217-4D38-AB95-E2C7EB872C4E"
     private static let postureCharacteristicUUID = "1BfCE46F-D96B-40F9-8EEB-B64F861AAD89"
+    private static let hapticCharacteristicUUID = "AB3F4426-FFF9-42F9-9207-928245A924A5"
+    private static let typingCharacteristicUUID = "46EA3751-2006-4F14-A09A-161DACE1AC5D"
     
     private static let wristPlus: ASPickerDisplayItem = {
         let descriptor = ASDiscoveryDescriptor()
@@ -133,7 +136,10 @@ class AccessorySessionManager: NSObject {
             return nil
         }
         
-        if let number = Int(string, radix: 16) {
+        if var number = Int(string, radix: 16) {
+            if number > 180 {
+                number -= 360
+            }
             return Measurement(value: Double(number), unit: .degrees)
         } else {
             return nil
@@ -147,7 +153,10 @@ class AccessorySessionManager: NSObject {
             return nil
         }
         
-        if let number = Int(string, radix: 16) {
+        if var number = Int(string, radix: 16) {
+            if number > 180 {
+                number -= 360
+            }
             return Measurement(value: Double(number), unit: .degrees)
         } else {
             return nil
@@ -161,7 +170,10 @@ class AccessorySessionManager: NSObject {
             return nil
         }
         
-        if let number = Int(string, radix: 16) {
+        if var number = Int(string, radix: 16) {
+            if number > 180 {
+                number -= 360
+            }
             return Measurement(value: Double(number), unit: .degrees)
         } else {
             return nil
@@ -233,7 +245,12 @@ extension AccessorySessionManager: CBPeripheralDelegate {
         }
 
         for service in services {
-            peripheral.discoverCharacteristics([CBUUID(string: Self.yawCharacteristicUUID), CBUUID(string: Self.rollCharacteristicUUID), CBUUID(string: Self.pitchCharacteristicUUID), CBUUID(string: Self.postureCharacteristicUUID)], for: service)
+            peripheral.discoverCharacteristics([CBUUID(string: Self.yawCharacteristicUUID),
+                                                CBUUID(string: Self.rollCharacteristicUUID),
+                                                CBUUID(string: Self.pitchCharacteristicUUID),
+                                                CBUUID(string: Self.postureCharacteristicUUID),
+                                                CBUUID(string: Self.hapticCharacteristicUUID),
+                                                CBUUID(string: Self.typingCharacteristicUUID)], for: service)
         }
     }
 
@@ -262,10 +279,15 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             peripheral.setNotifyValue(true, for: characteristic)
             peripheral.readValue(for: characteristic)
         }
-        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.postureCharacteristicUUID) {
-            postureCharacteristic = characteristic
+        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.hapticCharacteristicUUID) {
+            hapticCharacteristic = characteristic
             peripheral.setNotifyValue(true, for: characteristic)
-            peripheral.readValue(for: characteristic)
+            peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+        }
+        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.typingCharacteristicUUID) {
+            typingCharacteristic = characteristic
+            peripheral.setNotifyValue(true, for: characteristic)
+            peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
         }
     }
     

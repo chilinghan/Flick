@@ -50,10 +50,12 @@ struct PairedView: View {
                     } label: {
                         Text("Yaw")
                     }
-                    LabeledContent {
-                        Text(accessorySessionManager.badPosture ?? false ? "Yes" : "No")
-                    } label: {
-                        Text("Bad posture")
+                    Label {
+                        Text("Posture")
+                    } icon: {
+                        Circle()
+                            .fill(accessorySessionManager.badPosture ?? false ? Color.red : Color.green)
+                            .frame(width: 10, height: 10)
                     }
                     
 //                    LabeledContent {

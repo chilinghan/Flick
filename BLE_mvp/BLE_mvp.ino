@@ -13,6 +13,8 @@
 #define CHARACTERISTIC_ROLL "BEB5483E-36E1-4688-B7F5-EA07361B26A8"
 #define CHARACTERISTIC_PITCH "066A8CE3-6217-4D38-AB95-E2C7EB872C4E"
 #define CHARACTERISTIC_POSTURE "1BfCE46F-D96B-40F9-8EEB-B64F861AAD89"
+#define CHARACTERISTIC_HAPTICS "AB3F4426-FFF9-42F9-9207-928245A924A5"
+#define CHARACTERISTIC_TYPING "46EA3751-2006-4F14-A09A-161DACE1AC5D"
 
 #define HAPTIC_PIN 17 // on pin D17
 
@@ -22,9 +24,9 @@
 #define BNO055_SECONDARY_ADDRESS 0x29
 #define APP_DATA_CYCLE 1000 // in ms
 
-#define alpha 0.98
+#define alpha 0.95
 const int window_size = APP_DATA_CYCLE / DELTAT;
-const int rangeYPR[3][2] = {{0, 0}, {30, 360-30}, {0, 0}}; // in deg
+const int rangeYPR[3][2] = {{-180, 180}, {-30, 15}, {-180, 180}}; // in deg
 
 // Check I2C device address and correct line below (by default address is 0x29 or 0x28)
 //                                   id, address
@@ -36,6 +38,8 @@ BLECharacteristic *pCharacteristicYaw;
 BLECharacteristic *pCharacteristicPitch;
 BLECharacteristic *pCharacteristicRoll;
 BLECharacteristic *pCharacteristicPosture;
+BLECharacteristic *pCharacteristicHaptics;
+BLECharacteristic *pCharacteristicTyping;
 
 BLEServer *pServer;
 bool deviceConnected = false;
@@ -44,6 +48,9 @@ bool oldDeviceConnected = false;
 float euler1[3];
 int moving_window[window_size][3];
 int count;
+
+int haptic_mode = 1; // 0: off, 1: on
+int typing_mode = -1; // -2: automatic off, -1: automatic on, 0: off, 1: on
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -55,6 +62,40 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
+class MyHapticsCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+      std::string value = pCharacteristicHaptics->getValue();
+
+      if (value.length() > 0) {
+        // value[0]
+        Serial.println("*********");
+        Serial.print("New value: ");
+        for (int i = 0; i < value.length(); i++)
+          Serial.print(value[i]);
+
+        Serial.println();
+        Serial.println("*********");
+      }
+    }
+};
+
+class MyTypingCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+      std::string value = pCharacteristicTyping->getValue();
+
+      if (value.length() > 0) {
+        Serial.println("*********");
+        Serial.print("New value: ");
+        for (int i = 0; i < value.length(); i++)
+          Serial.print(value[i]);
+
+        Serial.println();
+        Serial.println("*********");
+      }
+
+      // typingMode
+    }
+};
 void setup() {
   // Initialize the I2C library
   Wire.begin();
@@ -89,6 +130,18 @@ void setup() {
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY
                                        );
+  pCharacteristicHaptics = pService->createCharacteristic(
+                                         CHARACTERISTIC_HAPTICS,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pCharacteristicTyping = pService->createCharacteristic(
+                                         CHARACTERISTIC_TYPING,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pCharacteristicHaptics->setCallbacks(new MyHapticsCallbacks());
+  pCharacteristicTyping->setCallbacks(new MyTypingCallbacks());
 
   Serial.println("Orientation Sensor Raw Data Test");
   Serial.println("");
@@ -100,8 +153,8 @@ void setup() {
 
   if(!ism.begin())
   {
-    Serial.print("Ooops, no ism detected ... Check your wiring or I2C ADDR!");
-    while(1);
+    Serial.println("Ooops, no ism detected ... Check your wiring or I2C ADDR!");
+    // while(1);
   }
 
   ism.deviceReset();
@@ -117,7 +170,7 @@ void setup() {
 	ism.setAccelFullScale(ISM_4g); 
 
 	// Set the output data rate and precision of the gyroscope
-	ism.setGyroDataRate(ISM_GY_ODR_26Hz);
+	ism.setGyroDataRate(ISM_GY_ODR_104Hz);
 	ism.setGyroFullScale(ISM_125dps); 
 
 	// Turn on the accelerometer's filter and apply settings. 
@@ -130,8 +183,8 @@ void setup() {
 
   if (!bno2.begin())
   {
-    Serial.print("Ooops, no BNO0552 detected ... Check your wiring or I2C ADDR!");
-    while(1);
+    Serial.println("Ooops, no BNO0552 detected ... Check your wiring or I2C ADDR!");
+    // while(1);
   }
 
   delay(1000);
@@ -155,10 +208,6 @@ void setup() {
 
 void loop(void)
 {
-  // uint8_t system1, gyro1, accel1, mag1, system2, gyro2, accel2, mag2 = 0;
-  // bno1.getCalibration(&system1, &gyro1, &accel1, &mag1);
-  // bno2.getCalibration(&system2, &gyro2, &accel2, &mag2);
-    
   // Possible vector values can be:
   // - VECTOR_ACCELEROMETER - m/s^2
   // - VECTOR_MAGNETOMETER  - uT
@@ -231,74 +280,81 @@ void loop(void)
   matrixToEuler(R_relative, &roll_r, &pitch_r, &yaw_r);
 
   // Convert the relative angles back to degrees
-  int roll = (int) degrees(roll_r);
-  int pitch = (int) -degrees(pitch_r);
-  int yaw = (int) degrees(yaw_r);
+  int YPR[3] = {(int) degrees(yaw_r),
+                (int) -degrees(pitch_r),
+                (int) degrees(roll_r)};
   // yaw = (yaw < 0) ? yaw += 180 : yaw -= 180;
   // yaw = -yaw;
 
-  if (yaw < 0) {
-    yaw += 360;
-  }
-  if (pitch < 0) {
-    pitch += 360;
-  }
-  if (roll < 0) {
-    roll += 360;
-  }
-
   //Print the relative Euler angles
   Serial.print("Relative Yaw:");
-  Serial.print(yaw);
+  Serial.print(YPR[0]);
   Serial.print(" Relative Pitch:");
-  Serial.print(pitch);
+  Serial.print(YPR[1]);
   Serial.print(" Relative Roll:");
-  Serial.println(roll);
+  Serial.println(YPR[2]);
 
-  moving_window[count][0] = yaw;
-  moving_window[count][1] = pitch;
-  moving_window[count][2] = roll;
-  uint16_t avgYaw = 0;
-  uint16_t avgPitch = 0;
-  uint16_t avgRoll = 0;
-  
+  for (int i = 0; i < 3; i++)
+  {
+    moving_window[count][i] = YPR[i];
+  }
+  int avgYPRSigned[3] = {0};
+  uint16_t avgYPR[3] = {0};
+
   for (int i = 0; i < window_size; i++)
   {
-    avgYaw += moving_window[i][0];
-    avgPitch += moving_window[i][1];
-    avgRoll += moving_window[i][2];
+    for (int j = 0; j < 3; j++)
+    {
+      avgYPRSigned[j] += moving_window[i][j];
+    }
   }
 
-  avgYaw /= window_size;
-  avgPitch /= window_size;
-  avgRoll /= window_size;
+  for (int i = 0; i < 3; i++)
+  {
+    avgYPRSigned[i] /= window_size;
+    avgYPR[i] = avgYPRSigned[i];
+    if (avgYPRSigned[i] < 0)
+    {
+      avgYPR[i] += 360;
+    }
+  }
 
   Serial.print("Average Yaw:");
-  Serial.print(avgYaw);
+  Serial.print(avgYPR[0]);
   Serial.print(" Average Pitch:");
-  Serial.print(avgPitch);
+  Serial.print(avgYPR[1]);
   Serial.print(" Average Roll:");
-  Serial.println(avgRoll);
+  Serial.println(avgYPR[2]);
 
   uint8_t badPosture = 0;
 
   digitalWrite(HAPTIC_PIN, 0);
 
-  if (pitch > rangeYPR[1][0] && pitch < rangeYPR[1][1])
+  for (int i = 0; i < 3; i++)
+  {
+    if (YPR[i] < rangeYPR[i][0] || YPR[i] > rangeYPR[i][1]) // since YPR is signed
+    {
+      if (typing_mode == -1 || typing_mode == 1)
+      {
+        badPosture = 1;
+      }
+    }
+  }
+
+  if (haptic_mode == 1 && badPosture == 1)
   {
     digitalWrite(HAPTIC_PIN, 1);
-    badPosture = 1;
   }
   
   if (deviceConnected) {
-    pCharacteristicYaw->setValue((uint8_t *)&avgYaw, 2);
+    pCharacteristicYaw->setValue((uint8_t *)&avgYPR[0], 2);
     pCharacteristicYaw->notify();
-    pCharacteristicPitch->setValue((uint8_t *)&avgPitch, 2);
+    pCharacteristicPitch->setValue((uint8_t *)&avgYPR[1], 2);
     pCharacteristicPitch->notify();
-    pCharacteristicRoll->setValue((uint8_t *)&avgRoll, 2);
+    pCharacteristicRoll->setValue((uint8_t *)&avgYPR[2], 2);
     pCharacteristicRoll->notify();
     pCharacteristicPosture->setValue((uint8_t *)&badPosture, 1);
-    pCharacteristicPosture->notify();
+    pCharacteristicPosture->notify();  
   }
   if (!deviceConnected && oldDeviceConnected) {
         delay(500); // give the bluetooth stack the chance to get things ready
