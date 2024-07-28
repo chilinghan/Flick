@@ -49,8 +49,8 @@ float euler1[3];
 int moving_window[window_size][3];
 int count;
 
-int haptic_mode = 1; // 0: off, 1: on
-int typing_mode = -1; // -2: automatic off, -1: automatic on, 0: off, 1: on
+uint8_t haptic_mode = 0; // 0: off, 1: on
+uint8_t typing_mode = -1; // 0: off, 1: on, 2: automatic
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -64,36 +64,15 @@ class MyServerCallbacks: public BLEServerCallbacks {
 
 class MyHapticsCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-      std::string value = pCharacteristicHaptics->getValue();
-
-      if (value.length() > 0) {
-        // value[0]
-        Serial.println("*********");
-        Serial.print("New value: ");
-        for (int i = 0; i < value.length(); i++)
-          Serial.print(value[i]);
-
-        Serial.println();
-        Serial.println("*********");
-      }
-    }
+      uint8_t* value = pCharacteristicHaptics->getData();
+      haptic_mode = value[0];
+    } 
 };
 
 class MyTypingCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-      std::string value = pCharacteristicTyping->getValue();
-
-      if (value.length() > 0) {
-        Serial.println("*********");
-        Serial.print("New value: ");
-        for (int i = 0; i < value.length(); i++)
-          Serial.print(value[i]);
-
-        Serial.println();
-        Serial.println("*********");
-      }
-
-      // typingMode
+      uint8_t* value = pCharacteristicTyping->getData();
+      typing_mode = value[0];
     }
 };
 void setup() {
@@ -339,7 +318,7 @@ void loop(void)
     Serial.println(avgYPRSigned[i]);
     if (avgYPRSigned[i] < rangeYPR[i][0] || avgYPRSigned[i] > rangeYPR[i][1]) // since YPR is signed
     {
-      if (typing_mode == -1 || typing_mode == 1)
+      if (typing_mode != 0)
       {
         badPosture = 1;
       }

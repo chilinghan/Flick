@@ -14,6 +14,8 @@ struct PairedView: View {
     @AppStorage("accessoryPaired") private var accessoryPaired = false
     
     @State var isConnected = false
+    @State var isHapticsOn = false
+    @State var isTypingOn = false
         
     var body: some View {
         NavigationStack {
@@ -64,10 +66,10 @@ struct PairedView: View {
 //                        Text("Orientation")
 //                    }
                     
-//                    Toggle("Pump", isOn: $isRelayOn)
-//                        .onChange(of: isRelayOn) {
-//                            accessorySessionManager.setRelayState(isOn: isRelayOn)
-//                        }
+                    Toggle("Haptics", isOn: $isHapticsOn)
+                        .onChange(of: isHapticsOn) {
+                            accessorySessionManager.setHaptics(hapticOn: isHapticsOn ? 1 : 0)
+                        }
 //                    
                     NavigationLink {
                         StatsView(accessorySessionManager: accessorySessionManager)

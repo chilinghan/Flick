@@ -62,6 +62,13 @@ class AccessorySessionManager: NSObject, ObservableObject {
         peripheral?.writeValue(haptics, for: hapticCharacteristic!, type: .withResponse)
     }
     
+    func setTyping(typingMode: UInt8) {
+        let typing = Data([typingMode])
+
+        peripheral?.writeValue(typing, for: typingCharacteristic!, type: .withResponse)
+    }
+    
+    
     func presentPicker() {
         session.showPicker(for: [Self.wristPlus]) { error in
             if let error {
