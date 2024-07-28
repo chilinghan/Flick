@@ -25,6 +25,8 @@
 #define APP_DATA_CYCLE 1000 // in ms
 
 #define alpha 0.85
+
+#define ANGLE_OFFSET 0
 const int window_size = APP_DATA_CYCLE / DELTAT;
 const int rangeYPR[3][2] = {{-180, 180}, {-25, 25}, {-180, 180}}; // in deg
 
@@ -222,7 +224,7 @@ void loop(void)
 
   // Convert Euler angles to radians
   float roll1 = euler1[0];
-  float pitch1 = -euler1[1];
+  float pitch1 = -euler1[1] + ANGLE_OFFSET;
   float yaw1 = -euler1[2];
 
   imu::Vector<3> euler2 = bno2.getVector(Adafruit_BNO055::VECTOR_EULER);
