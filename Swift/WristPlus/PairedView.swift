@@ -18,6 +18,16 @@ struct PairedView: View {
     @State var isTypingOn = false
         
     var body: some View {
+        TabView {
+            HomeView()
+                .tabItem {
+                    Label("Home", systemImage: "house")
+                }
+            StatsView(accessorySessionManager: accessorySessionManager)
+                .tabItem {
+                    Label("Stats", systemImage: "chart.xyaxis.line")
+                }
+        }
         NavigationStack {
             VStack {
                 Spacer()
@@ -60,23 +70,12 @@ struct PairedView: View {
                             .frame(width: 10, height: 10)
                     }
                     
-//                    LabeledContent {
-//                        Text(accessorySessionManager.orientation?.name.capitalized ?? "nil")
-//                    } label: {
-//                        Text("Orientation")
-//                    }
-                    
                     Toggle("Haptics", isOn: $isHapticsOn)
                         .onChange(of: isHapticsOn) {
                             accessorySessionManager.setHaptics(hapticOn: isHapticsOn ? 1 : 0)
                         }
-//                    
-                    NavigationLink {
-                        StatsView(accessorySessionManager: accessorySessionManager)
-                    } label: {
-                        Text("Orientation flow")
-                    }
-                }.scrollDisabled(true)
+
+                }.scrollDisabled(false)
                 
                 Spacer()
                 Button {
