@@ -1,3 +1,4 @@
+#include <SparkFun_ISM330DHCX.h>
 #include <Wire.h>
 #include "SparkFun_BMI270_Arduino_Library.h"
 #include <BLEDevice.h>
@@ -7,33 +8,55 @@
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_YAW  "e848839a-6db5-4aa8-918a-5d0f2a131e0d"
-#define CHARACTERISTIC_ROLL "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-#define CHARACTERISTIC_PITCH "066a8ce3-6217-4d38-ab95-e2c7eb872c4e"
+#define SERVICE_UUID        "4FAFC201-1FB5-459E-8FCC-C5C9C331914B"
+#define CHARACTERISTIC_YAW  "E848839A-6DB5-4AA8-918A-5D0F2A131E0D"
+#define CHARACTERISTIC_ROLL "BEB5483E-36E1-4688-B7F5-EA07361B26A8"
+#define CHARACTERISTIC_PITCH "066A8CE3-6217-4D38-AB95-E2C7EB872C4E"
+#define CHARACTERISTIC_POSTURE "1BfCE46F-D96B-40F9-8EEB-B64F861AAD89"
+#define CHARACTERISTIC_HAPTICS "AB3F4426-FFF9-42F9-9207-928245A924A5"
+#define CHARACTERISTIC_TYPING "46EA3751-2006-4F14-A09A-161DACE1AC5D"
+
+#define HAPTIC_PIN 17 // on pin D17
 
 /* Set the delay between fresh samples */
-#define DELTAT 100 // in ms
-#define APP_DATA_CYCLE 500 // in ms
+#define DELTAT 100
+#define APP_DATA_CYCLE 1000 // in ms
 
+#define alpha 0.85
 const int window_size = APP_DATA_CYCLE / DELTAT;
-const float alpha = 0.98;
+const int rangeYPR[3][2] = {{-180, 180}, {-25, 25}, {-180, 180}}; // in deg
 
-// Check I2C device address and correct line below (by default address is 0x29 or 0x28)
-//                                   id, address
-BMI270 imu1;
+BMI270 imu1; 
 BMI270 imu2;
-Haptic_Driver hapDrive;
-
 
 BLECharacteristic *pCharacteristicYaw;
 BLECharacteristic *pCharacteristicPitch;
 BLECharacteristic *pCharacteristicRoll;
+BLECharacteristic *pCharacteristicPosture;
+BLECharacteristic *pCharacteristicHaptics;
+BLECharacteristic *pCharacteristicTyping;
+
+BLEServer *pServer;
+bool deviceConnected = false;
+bool oldDeviceConnected = false;
 
 float euler1[3];
 float euler2[3];
 int moving_window[window_size][3];
 int count;
+
+int haptic_mode = 1; // 0: off, 1: on
+int typing_mode = -1; // -2: automatic off, -1: automatic on, 0: off, 1: on
+
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+      deviceConnected = true;
+    };
+
+    void onDisconnect(BLEServer* pServer) {
+      deviceConnected = false;
+    }
+};
 
 void setup() {
   // Initialize the I2C library
@@ -41,12 +64,13 @@ void setup() {
 
   Serial.begin(115200);
 
-  while (!Serial) delay(500);  // wait for serial port to open!
+  delay(1500);  // wait for serial port to open!
   
   Serial.println("Starting BLE work!");
 
   BLEDevice::init("WristPlus");
-  BLEServer *pServer = BLEDevice::createServer();
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
   BLEService *pService = pServer->createService(SERVICE_UUID);
   pCharacteristicYaw = pService->createCharacteristic(
                                          CHARACTERISTIC_YAW,
@@ -63,29 +87,44 @@ void setup() {
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_NOTIFY
                                        );
+  pCharacteristicPosture = pService->createCharacteristic(
+                                         CHARACTERISTIC_POSTURE,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_NOTIFY
+                                       );
+  pCharacteristicHaptics = pService->createCharacteristic(
+                                         CHARACTERISTIC_HAPTICS,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pCharacteristicTyping = pService->createCharacteristic(
+                                         CHARACTERISTIC_TYPING,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
+  pCharacteristicHaptics->setCallbacks(new MyHapticsCallbacks());
+  pCharacteristicTyping->setCallbacks(new MyTypingCallbacks());
 
-  /* Initialize the haptics */
-  if( !hapDrive.begin())
-    Serial.println("Could not communicate with Haptic Driver.");
-  else
-    Serial.println("Qwiic Haptic Driver DA7280 found!");
+  Serial.println("Orientation Sensor Raw Data Test");
+  Serial.println("");
 
-  if( !hapDrive.defaultMotor() ) 
-    Serial.println("Could not set default settings.");
-
-  hapDrive.enableFreqTrack(false);
-
-  Serial.println("Setting I2C Operation.");
-  hapDrive.setOperationMode(DRO_MODE);
-  Serial.println("Ready.");
   
   /* Initialize the sensor */
   // Check if sensor is connected and initialize
   // Address is optional (defaults to 0x68)
-  while(imu1.beginI2C(BMI2_I2C_PRIM_ADDR) != BMI2_OK || imu2.beginI2C(BMI2_I2C_SEC_ADDR) != BMI2_OK)
+  if(imu1.beginI2C(BMI2_I2C_PRIM_ADDR) != BMI2_OK)
   {
       // Not connected, inform user
-      Serial.println("Error: BMI270 not connected, check wiring and I2C address!");
+      Serial.println("Error: BMI2701 not connected, check wiring and I2C address!");
+
+      // Wait a bit to see if connection is established
+      delay(1000);
+  }
+
+  if (imu2.beginI2C(BMI2_I2C_SEC_ADDR) != BMI2_OK)
+  {
+      // Not connected, inform user
+      Serial.println("Error: BMI2702 not connected, check wiring and I2C address!");
 
       // Wait a bit to see if connection is established
       delay(1000);
@@ -141,7 +180,6 @@ void setup() {
   accelConfig.cfg.acc.filter_perf = BMI2_PERF_OPT_MODE;
   accelConfig.cfg.acc.range = BMI2_ACC_RANGE_2G;
   err1 = imu1.setConfig(accelConfig);
-  err2 = imu2.setConfig(accelConfig);
 
   // Set gyroscope config
   bmi2_sens_config gyroConfig;
@@ -180,7 +218,11 @@ void setup() {
   Serial.println("Configuration valid! Beginning measurements");
   delay(1000);
 
+  pinMode(HAPTIC_PIN, OUTPUT);
+
   pService->start();
+  pServer->getAdvertising()->start();
+
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->setScanResponse(true);
@@ -208,16 +250,16 @@ void loop(void)
 
   Serial.print("\t");
   
-  float gyroX1 = imu1.data.gyroX;
-  float gyroY1 = imu1.data.gyroY;
-  float gyroZ1 = imu1.data.gyroZ;
+  float gyroX1 = radians(imu1.data.gyroX);
+  float gyroY1 = radians(imu1.data.gyroY);
+  float gyroZ1 = radians(imu1.data.gyroZ);
   Serial.print("Gyro X: ");
   Serial.print(gyroX1, 3);
   Serial.print(", Y: ");
   Serial.print(gyroY1, 3);
   Serial.print(", Z: ");
   Serial.print(gyroZ1, 3);
-  Serial.println(" deg/s");
+  Serial.println(" rad/s");
 
   float accelX2 = imu2.data.accelX;
   float accelY2 = imu2.data.accelY;
@@ -244,106 +286,120 @@ void loop(void)
   Serial.println(" rad/s");
 
   // roll
-  euler1[0] = alpha * (euler1[0] + gyroX1 * DELTAT) + (1 - alpha) * atan2(accelY1, accelZ1);
+  euler1[0] = alpha * (euler1[0] + gyroX1 * DELTAT / 1000.0) + (1 - alpha) * atan2(accelY1, accelZ1);
   // pitch
-  euler1[1] = alpha * (euler1[1] + gyroY1 * DELTAT) + (1 - alpha) * atan2(-accelX1, sqrt(accelY1 * accelY1 + accelZ1 * accelZ1));
+  euler1[1] = alpha * (euler1[1] + gyroY1 * DELTAT / 1000.0) + (1 - alpha) * atan2(-accelX1, sqrt(accelY1 * accelY1 + accelZ1 * accelZ1));
   // yaw
-  euler1[2] += gyroZ1 * DELTAT;
+  euler1[2] += gyroZ1 * DELTAT / 1000.0;
+  float roll1 = euler1[0];
+  float pitch1 = -euler1[1];
+  float yaw1 = -euler1[2];
 
   // roll
-  euler2[0] = alpha * (euler2[0] + gyroX2 * DELTAT) + (1 - alpha) * atan2(accelY2, accelZ2);
+  euler2[0] = alpha * (euler2[0] + gyroX2 * DELTAT / 1000.0) + (1 - alpha) * atan2(accelY2, accelZ2);
   // pitch
-  euler2[1] = alpha * (euler2[1] + gyroY2 * DELTAT) + (1 - alpha) * atan2(-accelX2, sqrt(accelY2 * accelY2 + accelZ2 * accelZ2));
+  euler2[1] = alpha * (euler2[1] + gyroY2 * DELTAT / 1000.0) + (1 - alpha) * atan2(-accelX2, sqrt(accelY2 * accelY2 + accelZ2 * accelZ2));
   // yaw
-  euler2[2] += gyroZ2 * DELTAT;
+  euler2[2] += gyroZ2 * DELTAT / 1000.0;
+  float roll2 = euler2[0];
+  float pitch2 = -euler2[1];
+  float yaw2 = -euler2[2];
 
-  // Compute rotation matrices for both IMUs
-  float R1[3][3], R2[3][3];
-  // roll, pitch, yaw
-  eulerToMatrix(euler1[0], euler1[1], euler1[2], R1);
-  eulerToMatrix(euler2[0], euler2[1], euler2[2], R2);
-
-  // Compute the relative rotation matrix R_relative = R1^T * R2
-  float R_relative[3][3];
-  relativeRotationMatrix(R1, R2, R_relative);
-
-  // Convert the relative rotation matrix back to Euler angles
-  float roll_r, pitch_r, yaw_r;
-  matrixToEuler(R_relative, &roll_r, &pitch_r, &yaw_r);
+  float roll_r = roll2 - roll1;
+  float pitch_r = pitch2 - pitch1;
+  float yaw_r = yaw2 - yaw1;
 
   // Convert the relative angles back to degrees
-  int roll = (int) degrees(roll_r);
-  int pitch = (int) degrees(pitch_r);
-  int yaw = (int) degrees(yaw_r);
-  yaw = (yaw < 0) ? yaw += 180 : yaw -= 180;
-  yaw = -yaw;
+  int YPR[3] = {(int) degrees(yaw_r),
+                (int) -degrees(pitch_r),
+                (int) degrees(roll_r)};
+  // yaw = (yaw < 0) ? yaw += 180 : yaw -= 180;
+  // yaw = -yaw;
 
-  // Print the relative Euler angles
-  Serial.println();
+  //Print the relative Euler angles
   Serial.print("Relative Yaw:");
-  Serial.print(yaw);
+  Serial.print(YPR[0]);
   Serial.print(" Relative Pitch:");
-  Serial.print(pitch);
+  Serial.print(YPR[1]);
   Serial.print(" Relative Roll:");
-  Serial.println(roll);
+  Serial.println(YPR[2]);
 
-  moving_window[count][0] = yaw;
-  moving_window[count][1] = pitch;
-  moving_window[count][2] = roll;
+  for (int i = 0; i < 3; i++)
+  {
+    moving_window[count][i] = YPR[i];
+  }
+  int avgYPRSigned[3] = {0};
+  uint16_t avgYPR[3] = {0};
 
-  int avgRoll, avgPitch, avgYaw = 0;
   for (int i = 0; i < window_size; i++)
   {
-    avgYaw += moving_window[i][0];
-    avgPitch += moving_window[i][1];
-    avgRoll += moving_window[i][2];
+    for (int j = 0; j < 3; j++)
+    {
+      avgYPRSigned[j] += moving_window[i][j];
+    }
   }
 
-  avgYaw /= window_size;
-  avgPitch /= window_size;
-  avgRoll /= window_size;
+  for (int i = 0; i < 3; i++)
+  {
+    avgYPRSigned[i] /= window_size;
+    avgYPR[i] = avgYPRSigned[i];
+    if (avgYPRSigned[i] < 0)
+    {
+      avgYPR[i] += 360;
+    }
+  }
 
-  pCharacteristicYaw->setValue(avgYaw);
-  pCharacteristicPitch->setValue(avgPitch);
-  pCharacteristicRoll->setValue(avgRoll);
+  Serial.print("Average Yaw:");
+  Serial.print(avgYPR[0]);
+  Serial.print(" Average Pitch:");
+  Serial.print(avgYPR[1]);
+  Serial.print(" Average Roll:");
+  Serial.println(avgYPR[2]);
+
+  uint8_t badPosture = 0;
+
+  digitalWrite(HAPTIC_PIN, 0);
+
+  for (int i = 1; i < 2; i++)
+  {
+    Serial.println(avgYPRSigned[i]);
+    if (avgYPRSigned[i] < rangeYPR[i][0] || avgYPRSigned[i] > rangeYPR[i][1]) // since YPR is signed
+    {
+      if (typing_mode == -1 || typing_mode == 1)
+      {
+        badPosture = 1;
+      }
+    }
+  }
+
+  if (haptic_mode == 1 && badPosture == 1)
+  {
+    digitalWrite(HAPTIC_PIN, 1);
+  }
+
+  if (deviceConnected) {
+    pCharacteristicYaw->setValue((uint8_t *)&avgYPR[0], 2);
+    pCharacteristicYaw->notify();
+    pCharacteristicPitch->setValue((uint8_t *)&avgYPR[1], 2);
+    pCharacteristicPitch->notify();
+    pCharacteristicRoll->setValue((uint8_t *)&avgYPR[2], 2);
+    pCharacteristicRoll->notify();
+    pCharacteristicPosture->setValue((uint8_t *)&badPosture, 1);
+    pCharacteristicPosture->notify();  
+  }
+  if (!deviceConnected && oldDeviceConnected) {
+        delay(500); // give the bluetooth stack the chance to get things ready
+        pServer->startAdvertising(); // restart advertising
+        Serial.println("start advertising");
+        oldDeviceConnected = deviceConnected;
+  }
+  // connecting
+  if (deviceConnected && !oldDeviceConnected) {
+      oldDeviceConnected = deviceConnected;
+  }
 
   count++;
   count %= window_size;
   delay(DELTAT);
 }
 
-void eulerToMatrix(float roll, float pitch, float yaw, float matrix[3][3]) {
-  float c1 = cos(yaw);
-  float s1 = sin(yaw);
-  float c2 = cos(pitch);
-  float s2 = sin(pitch);
-  float c3 = cos(roll);
-  float s3 = sin(roll);
-
-  matrix[0][0] = c1 * c2;
-  matrix[0][1] = c1 * s2 * s3 - s1 * c3;
-  matrix[0][2] = c1 * s2 * c3 + s1 * s3;
-  matrix[1][0] = s1 * c2;
-  matrix[1][1] = s1 * s2 * s3 + c1 * c3;
-  matrix[1][2] = s1 * s2 * c3 - c1 * s3;
-  matrix[2][0] = -s2;
-  matrix[2][1] = c2 * s3;
-  matrix[2][2] = c2 * c3;
-}
-
-void relativeRotationMatrix(float R1[3][3], float R2[3][3], float R_relative[3][3]) {
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      R_relative[i][j] = 0;
-      for (int k = 0; k < 3; k++) {
-        R_relative[i][j] += R1[k][i] * R2[k][j];  // the transpose of R1
-      }
-    }
-  }
-}
-
-void matrixToEuler(float matrix[3][3], float *roll, float *pitch, float *yaw) {
-  *pitch = -asin(matrix[2][0]);
-  *roll = atan2(matrix[2][1], matrix[2][2]);
-  *yaw = atan2(matrix[1][0], matrix[0][0]);
-}

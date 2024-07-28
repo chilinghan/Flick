@@ -8,8 +8,9 @@ import AccessorySetupKit
 import CoreBluetooth
 import SwiftUI
 
-@Observable
-class AccessorySessionManager: NSObject {
+class AccessorySessionManager: NSObject, ObservableObject {
+    @Published var logs: [PitchLog] = []
+
     var accesoryModel: AccessoryModel?
     var rawYaw: String? = nil
     var rawRoll: String? = nil
@@ -26,6 +27,7 @@ class AccessorySessionManager: NSObject {
     private var yawCharacteristic: CBCharacteristic?
     private var rollCharacteristic: CBCharacteristic?
     private var pitchCharacteristic: CBCharacteristic?
+    private var postureCharacteristic: CBCharacteristic?
     private var hapticCharacteristic: CBCharacteristic?
     private var typingCharacteristic: CBCharacteristic?
 
@@ -54,6 +56,12 @@ class AccessorySessionManager: NSObject {
 
     // MARK: - AccessorySessionManager actions
 
+    func setHaptics(hapticOn: UInt8) {
+        let haptics = Data([hapticOn])
+
+        peripheral?.writeValue(haptics, for: hapticCharacteristic!, type: .withResponse)
+    }
+    
     func presentPicker() {
         session.showPicker(for: [Self.wristPlus]) { error in
             if let error {
@@ -61,6 +69,7 @@ class AccessorySessionManager: NSObject {
             }
         }
     }
+
 
     func removeAccessory() {
         guard let currentAccessory else { return }
@@ -262,32 +271,37 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             return
         }
 
-        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.yawCharacteristicUUID) {
-            yawCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
-            peripheral.readValue(for: characteristic)
-        }
-        
-        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.rollCharacteristicUUID) {
-            rollCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
-            peripheral.readValue(for: characteristic)
-        }
-        
-        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.pitchCharacteristicUUID) {
-            pitchCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
-            peripheral.readValue(for: characteristic)
-        }
-        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.hapticCharacteristicUUID) {
-            hapticCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
-            peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
-        }
-        for characteristic in characteristics where characteristic.uuid == CBUUID(string: Self.typingCharacteristicUUID) {
-            typingCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
-            peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+        for characteristic in characteristics {
+            if characteristic.uuid == CBUUID(string: Self.yawCharacteristicUUID) {
+                yawCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.readValue(for: characteristic)
+            }
+            if characteristic.uuid == CBUUID(string: Self.rollCharacteristicUUID) {
+                rollCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.readValue(for: characteristic)
+            }
+            if characteristic.uuid == CBUUID(string: Self.pitchCharacteristicUUID) {
+                pitchCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.readValue(for: characteristic)
+            }
+            if characteristic.uuid == CBUUID(string: Self.postureCharacteristicUUID) {
+                postureCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.readValue(for: characteristic)
+            }
+            if characteristic.uuid == CBUUID(string: Self.hapticCharacteristicUUID) {
+                hapticCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+            }
+            if characteristic.uuid == CBUUID(string: Self.typingCharacteristicUUID) {
+                typingCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+            }
         }
     }
     
@@ -347,6 +361,9 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             DispatchQueue.main.async {
                 withAnimation {
                     self.rawPitch = rawMeasurements
+                    if let p = self.pitch?.value {
+                        self.logs.append(PitchLog(date: Date.now, angle: p))
+                    }
                 }
             }
         }

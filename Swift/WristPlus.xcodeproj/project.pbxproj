@@ -8,24 +8,30 @@
 
 /* Begin PBXBuildFile section */
 		9EF4762A2C4DD8CB001D2A32 /* WristPlusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF476292C4DD8CB001D2A32 /* WristPlusApp.swift */; };
-		9EF4762C2C4DD8CB001D2A32 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF4762B2C4DD8CB001D2A32 /* ContentView.swift */; };
 		9EF4762E2C4DD8CD001D2A32 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */; };
 		9EF476312C4DD8CD001D2A32 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EF476302C4DD8CD001D2A32 /* Preview Assets.xcassets */; };
 		9EF7409A2C4F20BD00BD4A2E /* PairedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF740982C4F20BD00BD4A2E /* PairedView.swift */; };
 		9EF7409C2C4F20BD00BD4A2E /* AccessorySessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */; };
 		9EF7409D2C4F20BD00BD4A2E /* AccessoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */; };
+		C51A13952C546709005D881E /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A13942C546709005D881E /* ChartView.swift */; };
+		C51A13972C54670A005D881E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A13962C54670A005D881E /* ContentView.swift */; };
+		C51A13992C546732005D881E /* PitchLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A13982C546732005D881E /* PitchLog.swift */; };
+		C51A139B2C546859005D881E /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A139A2C546859005D881E /* StatsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9E7C132C2C4F2581008CC240 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9EF476262C4DD8CB001D2A32 /* WristPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WristPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EF476292C4DD8CB001D2A32 /* WristPlusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WristPlusApp.swift; sourceTree = "<group>"; };
-		9EF4762B2C4DD8CB001D2A32 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9EF476302C4DD8CD001D2A32 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryModel.swift; sourceTree = "<group>"; };
 		9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessorySessionManager.swift; sourceTree = "<group>"; };
 		9EF740982C4F20BD00BD4A2E /* PairedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedView.swift; sourceTree = "<group>"; };
+		C51A13942C546709005D881E /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
+		C51A13962C54670A005D881E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C51A13982C546732005D881E /* PitchLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchLog.swift; sourceTree = "<group>"; };
+		C51A139A2C546859005D881E /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,8 +66,11 @@
 			children = (
 				9E7C132C2C4F2581008CC240 /* Info.plist */,
 				9EF476292C4DD8CB001D2A32 /* WristPlusApp.swift */,
-				9EF4762B2C4DD8CB001D2A32 /* ContentView.swift */,
 				9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */,
+				C51A13962C54670A005D881E /* ContentView.swift */,
+				C51A13942C546709005D881E /* ChartView.swift */,
+				C51A139A2C546859005D881E /* StatsView.swift */,
+				C51A13982C546732005D881E /* PitchLog.swift */,
 				9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */,
 				9EF740982C4F20BD00BD4A2E /* PairedView.swift */,
 				9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */,
@@ -148,11 +157,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9EF4762C2C4DD8CB001D2A32 /* ContentView.swift in Sources */,
+				C51A13992C546732005D881E /* PitchLog.swift in Sources */,
 				9EF4762A2C4DD8CB001D2A32 /* WristPlusApp.swift in Sources */,
+				C51A13972C54670A005D881E /* ContentView.swift in Sources */,
 				9EF7409A2C4F20BD00BD4A2E /* PairedView.swift in Sources */,
+				C51A139B2C546859005D881E /* StatsView.swift in Sources */,
 				9EF7409C2C4F20BD00BD4A2E /* AccessorySessionManager.swift in Sources */,
 				9EF7409D2C4F20BD00BD4A2E /* AccessoryModel.swift in Sources */,
+				C51A13952C546709005D881E /* ChartView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

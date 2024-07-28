@@ -69,11 +69,11 @@ struct PairedView: View {
 //                            accessorySessionManager.setRelayState(isOn: isRelayOn)
 //                        }
 //                    
-//                    NavigationLink {
-//                        HomeView()
-//                    } label: {
-//                        Text("Orientation flow")
-//                    }
+                    NavigationLink {
+                        StatsView(accessorySessionManager: accessorySessionManager)
+                    } label: {
+                        Text("Orientation flow")
+                    }
                 }.scrollDisabled(true)
                 
                 Spacer()

@@ -24,9 +24,9 @@
 #define BNO055_SECONDARY_ADDRESS 0x29
 #define APP_DATA_CYCLE 1000 // in ms
 
-#define alpha 0.95
+#define alpha 0.85
 const int window_size = APP_DATA_CYCLE / DELTAT;
-const int rangeYPR[3][2] = {{-180, 180}, {-30, 15}, {-180, 180}}; // in deg
+const int rangeYPR[3][2] = {{-180, 180}, {-25, 25}, {-180, 180}}; // in deg
 
 // Check I2C device address and correct line below (by default address is 0x29 or 0x28)
 //                                   id, address
@@ -252,32 +252,36 @@ void loop(void)
   float pitch2 = radians(euler2.y());
   float yaw2 = radians(euler2.x());
 
-  // Serial.print("Roll1:");
-  // Serial.print(degrees(roll1));
-  // Serial.print(" Pitch1:");
-  // Serial.print(degrees(pitch1));
-  // Serial.print(" Yaw1:");
-  // Serial.print(degrees(yaw1));
-  // Serial.print("\t");
-  // Serial.print("Roll2:");
-  // Serial.print(degrees(roll2));
-  // Serial.print(" Pitch2:");
-  // Serial.print(degrees(pitch2));
-  // Serial.print(" Yaw2:");
-  // Serial.println(degrees(yaw2));
+  Serial.print("Roll1:");
+  Serial.print(degrees(roll1));
+  Serial.print(" Pitch1:");
+  Serial.print(degrees(pitch1));
+  Serial.print(" Yaw1:");
+  Serial.print(degrees(yaw1));
+  Serial.print("\t");
+  Serial.print("Roll2:");
+  Serial.print(degrees(roll2));
+  Serial.print(" Pitch2:");
+  Serial.print(degrees(pitch2));
+  Serial.print(" Yaw2:");
+  Serial.println(degrees(yaw2));
 
   // Compute rotation matrices for both IMUs
-  float R1[3][3], R2[3][3];
-  eulerToMatrix(roll1, pitch1, yaw1, R1);
-  eulerToMatrix(roll2, pitch2, yaw2, R2);
+  // float R1[3][3], R2[3][3];
+  // eulerToMatrix(roll1, pitch1, yaw1, R1);
+  // eulerToMatrix(roll2, pitch2, yaw2, R2);
 
-  // Compute the relative rotation matrix R_relative = R1^T * R2
-  float R_relative[3][3];
-  relativeRotationMatrix(R1, R2, R_relative);
+  // // Compute the relative rotation matrix R_relative = R1^T * R2
+  // float R_relative[3][3];
+  // relativeRotationMatrix(R1, R2, R_relative);
 
-  // Convert the relative rotation matrix back to Euler angles
-  float roll_r, pitch_r, yaw_r;
-  matrixToEuler(R_relative, &roll_r, &pitch_r, &yaw_r);
+  // // Convert the relative rotation matrix back to Euler angles
+  // float roll_r, pitch_r, yaw_r;
+  // matrixToEuler(R_relative, &roll_r, &pitch_r, &yaw_r);
+
+  float roll_r = roll2 - roll1;
+  float pitch_r = pitch2 - pitch1;
+  float yaw_r = yaw2 - yaw1;
 
   // Convert the relative angles back to degrees
   int YPR[3] = {(int) degrees(yaw_r),
@@ -330,9 +334,10 @@ void loop(void)
 
   digitalWrite(HAPTIC_PIN, 0);
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 1; i < 2; i++)
   {
-    if (YPR[i] < rangeYPR[i][0] || YPR[i] > rangeYPR[i][1]) // since YPR is signed
+    Serial.println(avgYPRSigned[i]);
+    if (avgYPRSigned[i] < rangeYPR[i][0] || avgYPRSigned[i] > rangeYPR[i][1]) // since YPR is signed
     {
       if (typing_mode == -1 || typing_mode == 1)
       {
@@ -370,40 +375,4 @@ void loop(void)
   count++;
   count %= window_size;
   delay(DELTAT);
-}
-
-void eulerToMatrix(float roll, float pitch, float yaw, float matrix[3][3]) {
-  float c1 = cos(yaw);
-  float s1 = sin(yaw);
-  float c2 = cos(pitch);
-  float s2 = sin(pitch);
-  float c3 = cos(roll);
-  float s3 = sin(roll);
-
-  matrix[0][0] = c1 * c2;
-  matrix[0][1] = c1 * s2 * s3 - s1 * c3;
-  matrix[0][2] = c1 * s2 * c3 + s1 * s3;
-  matrix[1][0] = s1 * c2;
-  matrix[1][1] = s1 * s2 * s3 + c1 * c3;
-  matrix[1][2] = s1 * s2 * c3 - c1 * s3;
-  matrix[2][0] = -s2;
-  matrix[2][1] = c2 * s3;
-  matrix[2][2] = c2 * c3;
-}
-
-void matrixToEuler(float matrix[3][3], float *roll, float *pitch, float *yaw) {
-  *pitch = -asin(matrix[2][0]);
-  *roll = atan2(matrix[2][1], matrix[2][2]);
-  *yaw = atan2(matrix[1][0], matrix[0][0]);
-}
-
-void relativeRotationMatrix(float R1[3][3], float R2[3][3], float R_relative[3][3]) {
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      R_relative[i][j] = 0;
-      for (int k = 0; k < 3; k++) {
-        R_relative[i][j] += R1[k][i] * R2[k][j];  // Note the transpose of R1
-      }
-    }
-  }
 }
