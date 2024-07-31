@@ -14,20 +14,20 @@ struct PairedView: View {
     @AppStorage("accessoryPaired") private var accessoryPaired = false
     
     @State var isConnected = false
-    @State var isHapticsOn = false
+    @State var isHapticsOn = true
     @State var isTypingOn = false
         
     var body: some View {
-        TabView {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
-            StatsView(accessorySessionManager: accessorySessionManager)
-                .tabItem {
-                    Label("Stats", systemImage: "chart.xyaxis.line")
-                }
-        }
+//        TabView {
+//            HomeView()
+//                .tabItem {
+//                    Label("Home", systemImage: "house")
+//                }
+//            StatsView(accessorySessionManager: accessorySessionManager)
+//                .tabItem {
+//                    Label("Stats", systemImage: "chart.xyaxis.line")
+//                }
+//        }
         NavigationStack {
             VStack {
                 Spacer()
@@ -38,7 +38,6 @@ struct PairedView: View {
                 } label: {
                     Text("Refresh whether connected")
                 }
-                
                 
                 List {
                     Button {
@@ -74,6 +73,12 @@ struct PairedView: View {
                         .onChange(of: isHapticsOn) {
                             accessorySessionManager.setHaptics(hapticOn: isHapticsOn ? 1 : 0)
                         }
+                    
+                    NavigationLink {
+                        StatsView(accessorySessionManager: accessorySessionManager)
+                    } label: {
+                        Text("Orientation flow")
+                    }
 
                 }.scrollDisabled(false)
                 

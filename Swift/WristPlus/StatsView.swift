@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct StatsView: View {
-    @StateObject var accessorySessionManager: AccessorySessionManager
+    @State var accessorySessionManager: AccessorySessionManager
 
     var body: some View {
             ZStack{

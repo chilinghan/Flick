@@ -52,7 +52,7 @@ int moving_window[window_size][3];
 int count;
 
 uint8_t haptic_mode = 0; // 0: off, 1: on
-uint8_t typing_mode = -1; // 0: off, 1: on, 2: automatic
+uint8_t typing_mode = 1; // 0: off, 1: on, 2: automatic
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -87,7 +87,7 @@ void setup() {
   
   Serial.println("Starting BLE work!");
 
-  BLEDevice::init("WristPlus");
+  BLEDevice::init("Phalex");
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
   BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -341,6 +341,8 @@ void loop(void)
     pCharacteristicRoll->notify();
     pCharacteristicPosture->setValue((uint8_t *)&badPosture, 1);
     pCharacteristicPosture->notify();  
+    pCharacteristicTyping->setValue((uint8_t *)&typing_mode, 1);
+    pCharacteristicTyping->notify(); 
   }
   if (!deviceConnected && oldDeviceConnected) {
         delay(500); // give the bluetooth stack the chance to get things ready

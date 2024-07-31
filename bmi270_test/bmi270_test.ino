@@ -27,7 +27,6 @@ const int window_size = APP_DATA_CYCLE / DELTAT;
 const int rangeYPR[3][2] = {{-180, 180}, {-25, 25}, {-180, 180}}; // in deg
 
 BMI270 imu1; 
-BMI270 imu2;
 
 BLECharacteristic *pCharacteristicYaw;
 BLECharacteristic *pCharacteristicPitch;
@@ -41,11 +40,10 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
 float euler1[3];
-float euler2[3];
 int moving_window[window_size][3];
 int count;
 
-uint8_t haptic_mode = 1; // 0: off, 1: on
+uint8_t haptic_mode = 0; // 0: off, 1: on
 uint8_t typing_mode = 1; // 0: off, 1: on, 2: automatic
 
 class MyServerCallbacks: public BLEServerCallbacks {
@@ -135,15 +133,6 @@ void setup() {
       // Wait a bit to see if connection is established
       delay(1000);
   }
-
-  if (imu2.beginI2C(BMI2_I2C_SEC_ADDR) != BMI2_OK)
-  {
-      // Not connected, inform user
-      Serial.println("Error: BMI2702 not connected, check wiring and I2C address!");
-
-      // Wait a bit to see if connection is established
-      delay(1000);
-  }
   imu1.enableFeature(BMI2_SIG_MOTION);
 
   // The accelerometer and gyroscope can be configured with multiple settings
@@ -186,48 +175,39 @@ void setup() {
   // bandwidth parameters. An error code is returned by setConfig, which can
   // be used to determine whether the selected settings are valid.
   int8_t err1 = BMI2_OK;
-  int8_t err2 = BMI2_OK;
 
   // Set accelerometer config
   bmi2_sens_config accelConfig;
   accelConfig.type = BMI2_ACCEL;
-  accelConfig.cfg.acc.odr = BMI2_ACC_ODR_400HZ;
+  accelConfig.cfg.acc.odr = BMI2_ACC_ODR_50HZ;
   accelConfig.cfg.acc.bwp = BMI2_ACC_OSR4_AVG1;
   accelConfig.cfg.acc.filter_perf = BMI2_PERF_OPT_MODE;
   accelConfig.cfg.acc.range = BMI2_ACC_RANGE_2G;
   err1 = imu1.setConfig(accelConfig);
-  err2 = imu2.setConfig(accelConfig);
-
-  bmi2_remap axes;
-  axes.x = BMI2_AXIS_POS_Y;
-  axes.y = BMI2_AXIS_POS_X;
-  imu1.remapAxes(axes);
-  imu2.remapAxes(axes);
 
   // Set gyroscope config
   bmi2_sens_config gyroConfig;
   gyroConfig.type = BMI2_GYRO;
-  gyroConfig.cfg.gyr.odr = BMI2_GYR_ODR_400HZ;
+  gyroConfig.cfg.gyr.odr = BMI2_GYR_ODR_50HZ;
   gyroConfig.cfg.gyr.bwp = BMI2_GYR_OSR4_MODE;
   gyroConfig.cfg.gyr.filter_perf = BMI2_PERF_OPT_MODE;
   gyroConfig.cfg.gyr.ois_range = BMI2_GYR_OIS_250;
   gyroConfig.cfg.gyr.range = BMI2_GYR_RANGE_125;
   gyroConfig.cfg.gyr.noise_perf = BMI2_PERF_OPT_MODE;
   err1 = imu1.setConfig(gyroConfig);
-  err2 = imu2.setConfig(gyroConfig);
       // Check whether the config settings above were valid
-  while(err1 != BMI2_OK || err2 != BMI2_OK)
+  while(err1 != BMI2_OK)
   {
       // Not valid, determine which config was the problem
-      if(err1 == BMI2_E_ACC_INVALID_CFG || err2 == BMI2_E_ACC_INVALID_CFG)
+      if(err1 == BMI2_E_ACC_INVALID_CFG)
       {
           Serial.println("Accelerometer config not valid!");
       }
-      else if(err1 == BMI2_E_GYRO_INVALID_CFG || err2 == BMI2_E_GYRO_INVALID_CFG)
+      else if(err1 == BMI2_E_GYRO_INVALID_CFG)
       {
           Serial.println("Gyroscope config not valid!");
       }
-      else if(err1 == BMI2_E_ACC_GYR_INVALID_CFG || err2 == BMI2_E_ACC_GYR_INVALID_CFG)
+      else if(err1 == BMI2_E_ACC_GYR_INVALID_CFG)
       {
           Serial.println("Both configs not valid!");
       }
@@ -262,10 +242,10 @@ void loop(void)
   // Check if this is the correct interrupt condition
   if(!(interruptStatus & BMI270_SIG_MOT_STATUS_MASK))
   {
-    Serial.println("NO SIGNIFICANT MOTION!!!");
+    Serial.println("NO MOTION!!!");
   }
   imu1.getSensorData();
-  imu2.getSensorData();
+  // imu2.getSensorData();
 
   float accelX1 = imu1.data.accelX;
   float accelY1 = imu1.data.accelY;
@@ -291,30 +271,6 @@ void loop(void)
   Serial.print(gyroZ1, 3);
   Serial.println(" rad/s");
 
-  float accelX2 = imu2.data.accelX;
-  float accelY2 = imu2.data.accelY;
-  float accelZ2 = imu2.data.accelZ;
-  Serial.print("Acceleration: X: ");
-  Serial.print(accelX2, 3);
-  Serial.print(", Y: ");
-  Serial.print(accelY2, 3);
-  Serial.print(", Z: ");
-  Serial.print(accelZ2, 3);
-  Serial.println(" m/s^2");
-
-  Serial.print("\t");
-  
-  float gyroX2 = radians(imu2.data.gyroX);
-  float gyroY2 = radians(imu2.data.gyroY);
-  float gyroZ2 = radians(imu2.data.gyroZ);
-  Serial.print("Gyro X: ");
-  Serial.print(gyroX2, 3);
-  Serial.print(", Y: ");
-  Serial.print(gyroY2, 3);
-  Serial.print(", Z: ");
-  Serial.print(gyroZ2, 3);
-  Serial.println(" rad/s");
-
   // roll
   euler1[0] = alpha * (euler1[0] + gyroX1 * DELTAT / 1000.0) + (1 - alpha) * atan2(accelY1, accelZ1);
   // pitch
@@ -325,19 +281,10 @@ void loop(void)
   float pitch1 = -euler1[1];
   float yaw1 = -euler1[2];
 
-  // roll
-  euler2[0] = alpha * (euler2[0] + gyroX2 * DELTAT / 1000.0) + (1 - alpha) * atan2(accelY2, accelZ2);
-  // pitch
-  euler2[1] = alpha * (euler2[1] + gyroY2 * DELTAT / 1000.0) + (1 - alpha) * atan2(-accelX2, sqrt(accelY2 * accelY2 + accelZ2 * accelZ2));
-  // yaw
-  euler2[2] += gyroZ2 * DELTAT / 1000.0;
-  float roll2 = euler2[0];
-  float pitch2 = -euler2[1];
-  float yaw2 = -euler2[2];
 
-  float roll_r = roll2 - roll1;
-  float pitch_r = pitch2 - pitch1;
-  float yaw_r = yaw2 - yaw1;
+  float roll_r = roll1;
+  float pitch_r = pitch1;
+  float yaw_r = yaw1;
 
   // Convert the relative angles back to degrees
   int YPR[3] = {(int) degrees(yaw_r),
@@ -392,6 +339,7 @@ void loop(void)
 
   for (int i = 1; i < 2; i++)
   {
+    Serial.println(avgYPRSigned[i]);
     if (avgYPRSigned[i] < rangeYPR[i][0] || avgYPRSigned[i] > rangeYPR[i][1]) // since YPR is signed
     {
       if (typing_mode != 0)

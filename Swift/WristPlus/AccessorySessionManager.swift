@@ -1,6 +1,6 @@
 //
 //  AccessoryConnection.swift
-//  Flex
+//  Chiling Han
 //
 
 import Foundation
@@ -8,14 +8,16 @@ import AccessorySetupKit
 import CoreBluetooth
 import SwiftUI
 
-class AccessorySessionManager: NSObject, ObservableObject {
-    @Published var logs: [PitchLog] = []
+@Observable
+class AccessorySessionManager: NSObject {
+    var logs: [PitchLog] = []
 
     var accesoryModel: AccessoryModel?
     var rawYaw: String? = nil
     var rawRoll: String? = nil
     var rawPitch: String? = nil
     var rawBadPosture: String? = nil
+    var rawTyping: String? = nil
 
     var peripheralConnected = false
     var pickerDismissed = true
@@ -64,8 +66,17 @@ class AccessorySessionManager: NSObject, ObservableObject {
     
     func setTyping(typingMode: UInt8) {
         let typing = Data([typingMode])
-
         peripheral?.writeValue(typing, for: typingCharacteristic!, type: .withResponse)
+    }
+    
+    func getSecPosture() -> Double {
+        var total = 0.0
+        for pitchLog in logs {
+            if !pitchLog.badPosture {
+                total += 0.1 // 100ms
+            }
+        }
+        return total
     }
     
     
@@ -210,6 +221,20 @@ class AccessorySessionManager: NSObject, ObservableObject {
             return nil
         }
     }
+    
+    var typing: Bool? {
+        let string = rawTyping
+        
+        guard string != nil, let string = string else {
+            return nil
+        }
+        
+        if let number = Int(string, radix: 16) {
+            return number != 0
+        } else {
+            return nil
+        }
+    }
 
 }
 
@@ -286,7 +311,7 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             }
             if characteristic.uuid == CBUUID(string: Self.rollCharacteristicUUID) {
                 rollCharacteristic = characteristic
-                peripheral.setNotifyValue(true, for: characteristic)
+                 peripheral.setNotifyValue(true, for: characteristic)
                 peripheral.readValue(for: characteristic)
             }
             if characteristic.uuid == CBUUID(string: Self.pitchCharacteristicUUID) {
@@ -301,13 +326,12 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             }
             if characteristic.uuid == CBUUID(string: Self.hapticCharacteristicUUID) {
                 hapticCharacteristic = characteristic
-                peripheral.setNotifyValue(true, for: characteristic)
-                peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+                 peripheral.setNotifyValue(true, for: characteristic)
             }
             if characteristic.uuid == CBUUID(string: Self.typingCharacteristicUUID) {
                 typingCharacteristic = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
-                peripheral.writeValue(Data([1]), for: characteristic, type: CBCharacteristicWriteType.withoutResponse)
+                peripheral.readValue(for: characteristic)
             }
         }
     }
@@ -369,7 +393,9 @@ extension AccessorySessionManager: CBPeripheralDelegate {
                 withAnimation {
                     self.rawPitch = rawMeasurements
                     if let p = self.pitch?.value {
-                        self.logs.append(PitchLog(date: Date.now, angle: p))
+                        if self.typing ?? true {
+                            self.logs.append(PitchLog(date: Date.now, angle: p, badPosture: self.badPosture ?? false))
+                        }
                     }
                 }
             }
@@ -388,6 +414,23 @@ extension AccessorySessionManager: CBPeripheralDelegate {
             DispatchQueue.main.async {
                 withAnimation {
                     self.rawBadPosture = rawMeasurements
+                }
+            }
+        }
+        else if characteristic.uuid == CBUUID(string: Self.typingCharacteristicUUID) {
+            guard
+                error == nil,
+                let data = characteristic.value
+            else {
+                print("Error not able to read typing")
+                return
+            }
+            let rawMeasurements = String(data.map { String(format: "%02x", $0) }.joined())
+            print("Typing: \(rawMeasurements)")
+
+            DispatchQueue.main.async {
+                withAnimation {
+                    self.rawTyping = rawMeasurements
                 }
             }
         }
