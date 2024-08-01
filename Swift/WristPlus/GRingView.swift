@@ -14,10 +14,6 @@ struct GRingView: View {
 
     var body: some View {
         ZStack {
-            Image("image")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 210, height: 250)
             Image("GP")
                 .resizable()
                 .aspectRatio(contentMode: .fit)

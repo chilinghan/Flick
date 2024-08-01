@@ -1,20 +1,9 @@
-//
-//  ContentView.swift
-//  WristPlus
-//
-//  Created by Hunter T on 7/21/24.
-//
-
 import SwiftUI
 
 struct ContentView: View {
-    
     @State var accessorySessionManager = AccessorySessionManager()
-
+    
     var body: some View {
-        
-//        PairedView(accessorySessionManager: accessorySessionManager)
-        
         if accessorySessionManager.accessoryPaired {
             TabView {
                 HomeView(accessorySessionManager: accessorySessionManager)
@@ -29,30 +18,29 @@ struct ContentView: View {
                     .tabItem {
                         Label("Settings", systemImage: "gearshape.fill")
                     }
-                
             }
             .onAppear {
                 Task {
                     while !accessorySessionManager.peripheralConnected {
                         accessorySessionManager.connect()
-                        try await Task.sleep(nanoseconds: 200000000)
+                        try await Task.sleep(nanoseconds: 200_000_000)
                     }
                 }
             }
-            
         } else {
             VStack {
                 VStack {
                     Text("Flick")
-                        .font(.system(size: 50, weight: .bold))                    .fontWeight(.bold)
+                        .font(.system(size: 90, weight: .bold))
+                        .fontWeight(.bold)
                         .padding(.top, 20)
+                    Spacer()
                 }
                 Image("logo")
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 300, height: 300)
                 
-                Spacer(minLength: 20)
-
+                Spacer(minLength: 147)
                 
                 Button {
                     accessorySessionManager.presentPicker()
@@ -64,13 +52,12 @@ struct ContentView: View {
                 .controlSize(.large)
                 .padding(.horizontal, 28)
                 .padding(.top, 20) // Add top padding to create some space between the image and the button
-                                
+                
                 Spacer()
             }
         }
     }
 }
-
 
 #Preview {
     ContentView()

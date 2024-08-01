@@ -21,6 +21,9 @@ struct StatsView: View {
                         .font(.largeTitle)
                         .foregroundColor(.white)
                         .padding(.trailing, 180)
+                        .padding(.top, 30)
+                        .bold()
+
                 }
                 
                 VStack{ //chart
@@ -32,17 +35,20 @@ struct StatsView: View {
                             HStack{
                                 ChartView(logs: $accessorySessionManager.logs)
                                     .frame(width: 325, height: 455)
+                                    .chartYScale(domain: -70...70)
                             }
                         }
                     }
                 }
                 
                 VStack{ //time (out of goal)
-                    Text("Total time")
+                    Text("Total Time")
                         .padding(.top, 15)
                         .font(.largeTitle)
                         .foregroundColor(.white)
                         .padding(.trailing, 200)
+                        .bold()
+
                 }
                 
                 VStack{ //time

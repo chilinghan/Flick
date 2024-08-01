@@ -11,20 +11,20 @@ import SwiftUI
 struct SettingsView: View {
     let accessorySessionManager: AccessorySessionManager
     
-    @State var isHapticsOn = false
-    @State var isTypingOn = false
+    @State var isHapticsOn = true
+    @State var isTypingOn = true
     
     var body: some View {
         ScrollView{
             VStack{
-                
                 VStack{ //sliders
                     Text("Device Options")
                         .padding(.top, 15)
                         .font(.largeTitle)
                         .foregroundColor(.white)
                         .padding(.trailing, 120)
-                    
+                        .padding(.top, 30)
+                        .bold()
                     
                     VStack{ //physical switches
                         ZStack{
@@ -37,9 +37,9 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundColor(Color("LightBl"))
                                 .padding(.leading, 40)
-                            // .onChange(of: isHapticsOn) {
-                            // accessorySessionManager.setHaptics(hapticOn: isHapticsOn ? 1 : 0)
-                            // }
+                                .onChange(of: isHapticsOn) {
+                                    accessorySessionManager.setHaptics(hapticOn: isHapticsOn ? 1 : 0)
+                                }
                         }
                     }
                     
@@ -53,6 +53,9 @@ struct SettingsView: View {
                             .font(.title2)
                             .foregroundColor(Color("LightBl"))
                             .padding(.leading, 40)
+                            .onChange(of: isTypingOn) {
+                                accessorySessionManager.setTyping(typingMode: isTypingOn ? 1 : 0)
+                            }
                     }
                 }; Spacer()
                 VStack{ //sliders
@@ -61,6 +64,7 @@ struct SettingsView: View {
                         .font(.largeTitle)
                         .foregroundColor(.white)
                         .padding(.trailing, 80)
+                        .bold()
                     
                     
                     ZStack{
@@ -71,7 +75,7 @@ struct SettingsView: View {
                             .font(.title2)
                             .foregroundColor(Color("LightBl"))
                             .padding(.trailing, 180)
-                        Image("battery.50")
+                        Image(systemName: "battery.50")
                             .font(.title2)
                             .foregroundColor(Color("LightBl"))
                             .padding(.leading, 40)
@@ -84,6 +88,7 @@ struct SettingsView: View {
                         .font(.largeTitle)
                         .foregroundColor(.white)
                         .padding(.trailing, 200)
+                        .bold()
                     
                     
                     ZStack{
@@ -91,7 +96,10 @@ struct SettingsView: View {
                             .frame(width: 350, height: 47)
                             .foregroundColor(Color("BoxCol"))
                         Button {
-                            accessorySessionManager.presentPicker()
+                            accessorySessionManager.removeAccessory()
+                            withAnimation {
+                                accessorySessionManager.accessoryPaired = false
+                            }
                         } label: {
                             Text("Re-Pair")
                                 .font(.title2)
@@ -106,6 +114,7 @@ struct SettingsView: View {
                             .font(.largeTitle)
                             .foregroundColor(.white)
                             .padding(.trailing, 270)
+                            .bold()
                     
                         ZStack{ //goal slider
                             RoundedRectangle(cornerRadius: 10)

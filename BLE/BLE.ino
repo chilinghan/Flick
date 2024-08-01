@@ -20,9 +20,9 @@
 
 /* Set the delay between fresh samples */
 #define DELTAT 100
-#define APP_DATA_CYCLE 5000 // in ms
+#define APP_DATA_CYCLE 1000 // in ms
 
-#define alpha 0.85
+#define alpha 0.95
 const int window_size = APP_DATA_CYCLE / DELTAT;
 const int rangeYPR[3][2] = {{-180, 180}, {-25, 25}, {-180, 180}}; // in deg
 
@@ -45,13 +45,8 @@ float euler2[3];
 int moving_window[window_size][3];
 int count;
 
-<<<<<<< Updated upstream
 int haptic_mode = 0; // 0: off, 1: on
 int typing_mode = 1; // 0: off, 1: on, 2: automatic
-=======
-uint8_t haptic_mode = 1; // 0: off, 1: on
-uint8_t typing_mode = 2; // 0: off, 1: on, 2: automatic
->>>>>>> Stashed changes
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
