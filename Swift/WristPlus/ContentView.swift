@@ -10,15 +10,40 @@ import SwiftUI
 struct ContentView: View {
     
     @State var accessorySessionManager = AccessorySessionManager()
-    @AppStorage("accessoryPaired") private var accessoryPaired = false
 
     var body: some View {
-        if accessoryPaired {
-            PairedView(accessorySessionManager: accessorySessionManager)
+        
+//        PairedView(accessorySessionManager: accessorySessionManager)
+        
+        if accessorySessionManager.accessoryPaired {
+            TabView {
+                HomeView(accessorySessionManager: accessorySessionManager)
+                    .tabItem {
+                        Label("Home", systemImage: "house")
+                    }
+                StatsView(accessorySessionManager: accessorySessionManager)
+                    .tabItem {
+                        Label("Stats", systemImage: "chart.xyaxis.line")
+                    }
+                SettingsView(accessorySessionManager: accessorySessionManager)
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape.fill")
+                    }
+                
+            }
+            .onAppear {
+                Task {
+                    while !accessorySessionManager.peripheralConnected {
+                        accessorySessionManager.connect()
+                        try await Task.sleep(nanoseconds: 200000000)
+                    }
+                }
+            }
+            
         } else {
             VStack {
                 VStack {
-                    Text("WristPlus")
+                    Text("Flick")
                         .font(.system(size: 50, weight: .bold))                    .fontWeight(.bold)
                         .padding(.top, 20)
                 }

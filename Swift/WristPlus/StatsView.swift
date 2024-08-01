@@ -9,7 +9,79 @@ import Foundation
 import SwiftUI
 
 struct StatsView: View {
-    @StateObject var accessorySessionManager: AccessorySessionManager
+
+    @State var accessorySessionManager: AccessorySessionManager
+
+    
+    var body: some View {
+        ScrollView{
+            VStack{
+                VStack{ //top
+                    Text("My Angle")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                        .padding(.trailing, 180)
+                }
+                
+                VStack{ //chart
+                    ZStack{
+                        RoundedRectangle(cornerRadius: 10)
+                            .frame(width: 350, height: 480)
+                            .foregroundColor(Color("BoxCol"))
+                        VStack{ // chart
+                            HStack{
+                                ChartView(logs: $accessorySessionManager.logs)
+                                    .frame(width: 325, height: 455)
+                            }
+                        }
+                    }
+                }
+                
+                VStack{ //time (out of goal)
+                    Text("Total time")
+                        .padding(.top, 15)
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                        .padding(.trailing, 200)
+                }
+                
+                VStack{ //time
+                    ZStack{
+                        RoundedRectangle(cornerRadius: 10)
+                            .frame(width: 350, height: 47)
+                            .foregroundColor(Color("BoxCol"))
+                        HStack{
+                            Text(String(format: "%.2f", accessorySessionManager.getTotalSec()/3600))
+                             Text("hours spent typing")
+                         }
+                      //  Text("\(accessorySessionManager.getTotalSec()/3600) hours spent typing")
+                            .font(.title2)
+                            .foregroundColor(Color("LightBl"))
+                    }
+                }
+            }
+        }
+    }
+}
+/*#Preview {
+    StatsView()
+}*/
+
+//String(format: "%.1f",
+
+
+//
+//  StatsView.swift
+//  WristPlus
+//
+//  Created by Chiling Han on 7/26/24.
+//
+
+/*import Foundation
+import SwiftUI
+
+struct StatsView: View {
+    @State var accessorySessionManager: AccessorySessionManager
 
     var body: some View {
             ZStack{
@@ -117,4 +189,4 @@ struct StatsView: View {
                 }
                
             }
-}
+}*/

@@ -13,5 +13,6 @@ struct WristPlusApp: App {
         WindowGroup {
             ContentView()
         }
+
     }
 }

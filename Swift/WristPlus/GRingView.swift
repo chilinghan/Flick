@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct GRingView: View {
-    @State private var progress: CGFloat = 0.75
+    @State var accessorySessionManager: AccessorySessionManager
     @State private var image: String = "healthy"
-    @State private var color: Color = Color("LightOr")
+    @State private var color: Color = Color("LightBl")
 
     var body: some View {
         ZStack {
@@ -22,39 +22,39 @@ struct GRingView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .padding(.top,7)
-                .frame(width: 138, height: 138)
+                .padding(.trailing,9)
+                .frame(width: 240, height: 240)
+                .colorInvert()
+            Circle()
+                .trim(from: 0, to: (1))
+                .stroke(color, style: StrokeStyle(lineWidth: 20, lineCap: .round))
+                .opacity(0.2)
+                .frame(width: 250, height: 250)
               //  .padding(10)
                 .overlay {
+            if accessorySessionManager.progress == 0 {
+                Circle()
+                    .trim(from: 0, to: (1))
+                    .stroke(color, style: StrokeStyle(lineWidth: 20, lineCap: .round))
+                    .opacity(0.0)
+                    .frame(width: 250, height: 250)
+            } else {
                     Circle()
-                        .trim(from: 0, to: progress)
+                        .trim(from: 0, to: ((accessorySessionManager.progress)/100)*2)
                         .stroke(color, style: StrokeStyle(lineWidth: 20, lineCap: .round))
-                        .frame(width: 150, height: 150)
+                        .frame(width: 250, height: 250)
                         .rotationEffect(.degrees(-90))
-                        .animation(.linear, value: progress)
-                  
+                        .animation(.linear, value: ((accessorySessionManager.progress)/100)*2)
+                    }
                 }
             
-           /* Text("\(Int(progress * 100))%")
+          /*  Text("\(Double(accessorySessionManager.progress/100)*2)%")
                 .font(.title)
                 .foregroundColor(color) */
         }
-       /* .onTapGesture {
-            withAnimation {
-                if image == "unhealthy" {
-                    image = "healthy"
-                    color = Color("LightOr")
-                    progress = 0.5 // some data
-                }
-                else {
-                    image = "unhealthy"
-                    color = .blue
-                    progress = 0.2 // some data
-                }
-            }
-        } */
     }
 }
 
-#Preview {
-    GRingView()
-}
+/*#Preview {
+    GRingView(progress: 5.0)
+}*/

@@ -10,16 +10,21 @@ import SwiftUI
 
 struct PairedView: View {
     let accessorySessionManager: AccessorySessionManager
+    //let CustomSlider: CustomSlider
     
-    @AppStorage("accessoryPaired") private var accessoryPaired = false
+   /* var minValue: Double
+    var maxValue: Double
+    var step: Double */
     
+    @State private var sliderValue: Double = .zero
     @State var isConnected = false
     @State var isHapticsOn = false
     @State var isTypingOn = false
-        
+
+    
     var body: some View {
         TabView {
-            HomeView()
+            HomeView(accessorySessionManager: accessorySessionManager)
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
@@ -27,8 +32,10 @@ struct PairedView: View {
                 .tabItem {
                     Label("Stats", systemImage: "chart.xyaxis.line")
                 }
+           // SettingsView()
+            
         }
-        NavigationStack {
+       NavigationStack {
             VStack {
                 Spacer()
                 
@@ -38,8 +45,7 @@ struct PairedView: View {
                 } label: {
                     Text("Refresh whether connected")
                 }
-                
-                
+                             
                 List {
                     Button {
                         accessorySessionManager.connect()
@@ -78,14 +84,16 @@ struct PairedView: View {
                 }.scrollDisabled(false)
                 
                 Spacer()
+                
                 Button {
                     accessorySessionManager.removeAccessory()
                     withAnimation {
-                        accessoryPaired = false
+                        accessorySessionManager.accessoryPaired = false
                     }
                 } label: {
                     Text("Reset app")
                 }.buttonStyle(.bordered)
+                
                 .controlSize(.large)
             }.padding()
                 .onAppear {
@@ -96,12 +104,13 @@ struct PairedView: View {
                         }
                         
                         isConnected = accessorySessionManager.peripheralConnected
-                    }
                 }
-        }
+            }
+        } 
     }
 }
 
-#Preview {
+/*#Preview {
     PairedView(accessorySessionManager: AccessorySessionManager())
 }
+*/

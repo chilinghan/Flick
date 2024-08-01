@@ -17,7 +17,7 @@ struct ChartView: View {
             AreaMark(
                 x: .value("Date", log.date),
                 y: .value("Angle", log.angle)
-            )
+            ) 
         }
     }
 }
