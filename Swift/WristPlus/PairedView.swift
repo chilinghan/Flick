@@ -20,7 +20,11 @@ struct PairedView: View {
     @State var isConnected = false
     @State var isHapticsOn = false
     @State var isTypingOn = false
-
+    
+    private let step: Double = 1.0
+    private let minValue: Double = 0.0
+    private let maxValue: Double = 5.0
+    private let circleSize: CGFloat = 15.0
     
     var body: some View {
         TabView {
@@ -45,7 +49,35 @@ struct PairedView: View {
                 } label: {
                     Text("Refresh whether connected")
                 }
-                             
+                
+                ZStack {
+                    // Slider
+                    CustomSlider(
+                        value: $sliderValue,
+                        minValue: minValue,
+                        maxValue: maxValue,
+                        step: step,
+                        thumbColor: .accentColor, trackColor: .accentColor, // Customize thumb color here
+                        trackBackgroundColor: .accentColor
+                    )
+                    
+                    // Overlay circles for step values
+                    GeometryReader { geometry in
+                        ZStack {
+                            ForEach(Array(stride(from: minValue, through: maxValue, by: step)), id: \.self) { value in
+                                Circle()
+                                    .frame(width: circleSize, height: circleSize)
+                                    .foregroundColor(.accentColor)
+                                    .position(
+                                        x: CGFloat((value - minValue) / (maxValue - minValue)) * (geometry.size.width - circleSize) + (circleSize / 2),
+                                        y: geometry.size.height / 2
+                                    )
+                            }
+                        }
+                    }
+                    .allowsHitTesting(false) // Prevent circles from blocking slider interaction
+                }
+                
                 List {
                     Button {
                         accessorySessionManager.connect()
@@ -82,6 +114,7 @@ struct PairedView: View {
                         }
 
                 }.scrollDisabled(false)
+                
                 
                 Spacer()
                 

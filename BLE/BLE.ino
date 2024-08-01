@@ -20,7 +20,7 @@
 
 /* Set the delay between fresh samples */
 #define DELTAT 100
-#define APP_DATA_CYCLE 1000 // in ms
+#define APP_DATA_CYCLE 5000 // in ms
 
 #define alpha 0.85
 const int window_size = APP_DATA_CYCLE / DELTAT;
@@ -45,8 +45,13 @@ float euler2[3];
 int moving_window[window_size][3];
 int count;
 
+<<<<<<< Updated upstream
 int haptic_mode = 0; // 0: off, 1: on
 int typing_mode = 1; // 0: off, 1: on, 2: automatic
+=======
+uint8_t haptic_mode = 1; // 0: off, 1: on
+uint8_t typing_mode = 2; // 0: off, 1: on, 2: automatic
+>>>>>>> Stashed changes
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -248,6 +253,18 @@ void setup() {
 
 void loop(void)
 {
+  uint16_t interruptStatus = 0;
+  imu1.getInterruptStatus(&interruptStatus);
+  // Check if this is the correct interrupt condition
+  if (typing_mode >= 2) {
+      typing_mode = 3;
+      if(!(interruptStatus & BMI270_SIG_MOT_STATUS_MASK))
+      {
+        typing_mode = 2;
+        Serial.println("NO SIGNIFICANT MOTION!!!");
+      }
+  }
+
   imu1.getSensorData();
   imu2.getSensorData();
 

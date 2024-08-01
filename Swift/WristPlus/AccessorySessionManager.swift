@@ -258,7 +258,7 @@ class AccessorySessionManager: NSObject {
         }
         
         if let number = Int(string, radix: 16) {
-            return number != 0
+            return number % 2 == 1
         } else {
             return nil
         }

@@ -17,9 +17,11 @@
 		C51A13972C54670A005D881E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A13962C54670A005D881E /* ContentView.swift */; };
 		C51A13992C546732005D881E /* PitchLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A13982C546732005D881E /* PitchLog.swift */; };
 		C51A139B2C546859005D881E /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A139A2C546859005D881E /* StatsView.swift */; };
-		C536E7552C56F60900143096 /* KeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C536E7542C56F60300143096 /* KeyView.swift */; };
 		C536E7572C56F88B00143096 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C536E7562C56F88A00143096 /* HomeView.swift */; };
 		C536E75B2C56F92E00143096 /* GRingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C536E75A2C56F92600143096 /* GRingView.swift */; };
+		C536E7622C5AFFE600143096 /* CustomSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C536E7612C5AFFE400143096 /* CustomSlider.swift */; };
+		C536E7662C5B020B00143096 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = C536E7652C5B020900143096 /* Color+Hex.swift */; };
+		C536E7682C5B039000143096 /* Slider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C536E7672C5B038F00143096 /* Slider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,9 +37,11 @@
 		C51A13962C54670A005D881E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C51A13982C546732005D881E /* PitchLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchLog.swift; sourceTree = "<group>"; };
 		C51A139A2C546859005D881E /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
-		C536E7542C56F60300143096 /* KeyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyView.swift; sourceTree = "<group>"; };
 		C536E7562C56F88A00143096 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		C536E75A2C56F92600143096 /* GRingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRingView.swift; sourceTree = "<group>"; };
+		C536E7612C5AFFE400143096 /* CustomSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSlider.swift; sourceTree = "<group>"; };
+		C536E7652C5B020900143096 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		C536E7672C5B038F00143096 /* Slider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,11 +79,13 @@
 				9EF740942C4F20BD00BD4A2E /* AccessoryModel.swift */,
 				C51A13962C54670A005D881E /* ContentView.swift */,
 				C51A13942C546709005D881E /* ChartView.swift */,
+				C536E7612C5AFFE400143096 /* CustomSlider.swift */,
+				C536E7672C5B038F00143096 /* Slider.swift */,
 				C51A139A2C546859005D881E /* StatsView.swift */,
-				C536E7542C56F60300143096 /* KeyView.swift */,
 				C51A13982C546732005D881E /* PitchLog.swift */,
 				9EF740962C4F20BD00BD4A2E /* AccessorySessionManager.swift */,
 				9EF740982C4F20BD00BD4A2E /* PairedView.swift */,
+				C536E7652C5B020900143096 /* Color+Hex.swift */,
 				C536E7562C56F88A00143096 /* HomeView.swift */,
 				C536E75A2C56F92600143096 /* GRingView.swift */,
 				9EF4762D2C4DD8CD001D2A32 /* Assets.xcassets */,
@@ -112,6 +118,8 @@
 			dependencies = (
 			);
 			name = WristPlus;
+			packageProductDependencies = (
+			);
 			productName = WristPlus;
 			productReference = 9EF476262C4DD8CB001D2A32 /* WristPlus.app */;
 			productType = "com.apple.product-type.application";
@@ -140,6 +148,8 @@
 				Base,
 			);
 			mainGroup = 9EF4761D2C4DD8CB001D2A32;
+			packageReferences = (
+			);
 			productRefGroup = 9EF476272C4DD8CB001D2A32 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -170,10 +180,12 @@
 				9EF4762A2C4DD8CB001D2A32 /* WristPlusApp.swift in Sources */,
 				C51A13972C54670A005D881E /* ContentView.swift in Sources */,
 				C536E7572C56F88B00143096 /* HomeView.swift in Sources */,
+				C536E7682C5B039000143096 /* Slider.swift in Sources */,
 				9EF7409A2C4F20BD00BD4A2E /* PairedView.swift in Sources */,
 				C536E75B2C56F92E00143096 /* GRingView.swift in Sources */,
 				C51A139B2C546859005D881E /* StatsView.swift in Sources */,
-				C536E7552C56F60900143096 /* KeyView.swift in Sources */,
+				C536E7662C5B020B00143096 /* Color+Hex.swift in Sources */,
+				C536E7622C5AFFE600143096 /* CustomSlider.swift in Sources */,
 				9EF7409C2C4F20BD00BD4A2E /* AccessorySessionManager.swift in Sources */,
 				9EF7409D2C4F20BD00BD4A2E /* AccessoryModel.swift in Sources */,
 				C51A13952C546709005D881E /* ChartView.swift in Sources */,
