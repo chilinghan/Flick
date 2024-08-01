@@ -111,7 +111,6 @@ struct SettingsView: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .frame(width: 350, height: 47)
                                 .foregroundColor(Color("BoxCol"))
-                                .padding(.bottom,25)
                             SliderView(accessorySessionManager: accessorySessionManager)
                                 //.padding(.top,25)
                         }

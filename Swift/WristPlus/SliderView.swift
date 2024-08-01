@@ -20,34 +20,23 @@ struct SliderView: View {
     
     @State private var sliderValue: Double = .zero
     @State private var isEditing = false
+    let circleSizeRange: ClosedRange<CGFloat> = 10...30
+    let sliderRange: ClosedRange<Double> = 0.0...10.0
     
     var body: some View {
-        VStack {
-            Slider(
-                value: $sliderValue,
-                in: 0...10,
-                step: 0.5,
-                onEditingChanged: { editing in
-                    isEditing = editing
-                },
-                minimumValueLabel: Text("0"),
-                maximumValueLabel: Text("10"),
-                label: {
-                    Text("Values from 0 to 10")
-                }
-            )
-            Text("\(sliderValue, specifier: "%.2f")")
-                .foregroundColor(isEditing ? .white : Color("LightBl"))
-        }
-        .padding()
-        .onChange(of: sliderValue) { _, newValue in
-            accessorySessionManager.goalTime = Double(newValue)
-           if accessorySessionManager.getGoalSec() == 0.0 {
-                accessorySessionManager.progress = 0.0
-            } else {
-                accessorySessionManager.progress = accessorySessionManager.getSecPosture() / accessorySessionManager.getGoalSec()
-            }
-        }
+        StepwiseSlider(value: $sliderValue,
+                           circleSizeRange: circleSizeRange,
+                           sliderRange: sliderRange
+                          )
+                    .padding()
+                    .onChange(of: sliderValue) { _, newValue in
+                        accessorySessionManager.goalTime = Double(newValue)
+                        if accessorySessionManager.getGoalSec() == 0.0 {
+                            accessorySessionManager.progress = 0.0
+                        } else {
+                            accessorySessionManager.progress = accessorySessionManager.getSecPosture() / accessorySessionManager.getGoalSec()
+                        }
+                    }
     }
 }
 
