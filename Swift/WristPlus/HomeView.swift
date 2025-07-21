@@ -51,6 +51,7 @@ struct HomeView: View {
                             .foregroundColor(Color("BoxCol"))
                             .padding(.top, 50)
                         GRingView(accessorySessionManager: accessorySessionManager)
+                            .padding(.top,40)
 
                         VStack{ //Activity
                             Text("Activity")

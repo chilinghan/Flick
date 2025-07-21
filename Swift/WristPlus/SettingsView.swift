@@ -78,7 +78,7 @@ struct SettingsView: View {
                         Image(systemName: "battery.50")
                             .font(.title2)
                             .foregroundColor(Color("LightBl"))
-                            .padding(.leading, 40)
+                            .padding(.leading, 260)
                         
                     }
                 }; Spacer()

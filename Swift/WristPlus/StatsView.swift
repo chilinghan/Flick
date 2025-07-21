@@ -31,6 +31,18 @@ struct StatsView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .frame(width: 350, height: 480)
                             .foregroundColor(Color("BoxCol"))
+                        // bad
+                        RoundedRectangle(cornerRadius: 10)
+                            .frame(width: 350, height: 400)
+                            .foregroundColor(.red)
+                            .opacity(0.2)
+                        
+                        // good
+                        
+                       RoundedRectangle(cornerRadius: 10)
+                            .frame(width: 350, height: 160)
+                            .foregroundColor(.green)
+                            .opacity(0.2)
                         VStack{ // chart
                             HStack{
                                 ChartView(logs: $accessorySessionManager.logs)
